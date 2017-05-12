@@ -1,0 +1,402 @@
+{% extends "Content_Management/theme.html" %}
+{% load staticfiles %}
+
+{% block "custom_styles" %}
+
+    <!-- DataTables CSS -->
+    <link href='{% static "vendor/datatables-plugins/dataTables.bootstrap.css" %}' rel="stylesheet">
+    <!-- DataTables  buttons CSS -->
+    <!--<link href='{% static "vendor/buttons.dataTables.min.css" %}' rel="stylesheet">-->
+    <link href='{% static "vendor/datatables/css/buttons.bootstrap.min.css" %}' rel="stylesheet">
+    <link href='{% static "vendor/datatables/css/colReorder.bootstrap.min.css" %}' rel="stylesheet">
+    
+
+    <!-- DataTables Responsive CSS -->
+    <link href='{% static "vendor/datatables-responsive/dataTables.responsive.css" %}' rel="stylesheet">
+    <!--
+    Jquery UI
+    -->
+    <link rel="stylesheet" type="text/css" media="all" href='{% static "jquery-ui-1.12.1/jquery-ui.min.css" %}'>
+    <!-- Selectize -->
+    <link rel="stylesheet" type="text/css" media="all" href='{% static "selectize/dist/css/selectize.bootstrap3.css" %}'>
+    <!-- Datetieme picker -->
+    <link rel="stylesheet" type="text/css" media="all" href='{% static "bootstrap_extended/bootstrap-datetimepicker.css" %}'>
+
+    <link rel="stylesheet" type="text/css" media="all" href='{% static "custom_css/CandidateProfileStyle.css" %}'>
+
+    {# bootstrap file input #}
+    <link href='{% static "bootstrap-fileinput/css/fileinput.min.css" %}' media="all" rel="stylesheet" type="text/css" />
+
+    <link rel="stylesheet" type="text/css" href='{% static "jquery-ui-1.12.1/jquery-ui.css" %}'>
+{% endblock %}
+
+
+
+{% block "body_contents" %}
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header" align="center">
+                Candidate Profile
+            </h1>
+
+        </div>
+        <!-- /.col-lg-12 -->
+    </div>
+    <!-- /.row -->
+
+    <div class="row">
+        <div class="col-lg-10">
+            <label for="consultancy_filter">Consultancy:</label>
+            <input id="consultancy_filter">
+        </div>
+        <!-- /.col-lg-8 -->
+        <div class="col-lg-2">
+            <label for="new_candidate" style="color:white;">________________</label>
+            <button id="new_candidate" class="btn btn-primary">New Candidate</button>
+        </div>
+        <!-- /.col-lg-4 -->
+    </div>
+    <!-- /.row -->  
+    <div class="row">
+        <div class="col-lg-6">
+            <label for="skill_filter">Skills:</label>
+            <input type="text" id="skill_filter">
+        </div>
+        <div class="col-lg-2">
+            <label for="experience_filter">Experience:</label>
+            <select id="experience_filter"></select>
+        </div>
+        <div class="col-lg-4">
+            <label for="location_filter">Preferred Location:</label>
+            <input id="location_filter">
+        </div>
+    </div>
+    <br>
+    
+    <div class="row">
+                <div class="col-lg-12">
+                    <div id="candidate_short_details_panel" class="panel panel-success">
+                        <div class="panel-heading">
+                         <a data-toggle="collapse" data-parent="#accordion" href="#collapse_can_details">Candidate Details</a>
+                        
+                        </div>
+                        <!-- /.panel-heading -->
+                        <div id="collapse_can_details" class="panel-collapse collapse in">
+                            <div class="panel-body">
+                                <table width="100%" class="table table-striped table-bordered table-hover" id="candidate_short_details">
+                                    <thead>
+                                        <tr>
+                                            <th>Candidate Name</th>
+                                            <th>Consultancy</th>
+                                            <th>Experience</th>
+                                            <th>Skill(s)</th>
+                                            <th>Expected CTC</th>
+                                            <th>Notice Period</th>
+                                        </tr>
+                                    </thead>
+                                    <!--<tbody>
+                                        
+                                    </tbody>-->
+                                </table>
+                                
+                            </div>
+                            <!-- /.panel-body -->
+                        </div>
+                    </div>
+                    <!-- /.panel -->
+                </div>
+                <!-- /.col-lg-12 -->
+            </div>
+            <!-- /.row -->
+
+
+
+    <br/>
+    <hr>
+    
+    <div class="row">
+
+        <div class="col-lg-12">
+            <!--<form class="form" id="candidate_details" method="POST" action="{% url 'CandidateProfile' %}" enctype="multipart/form-data">-->
+            <form class="form" action="" method="POST" id="candidate_details" enctype="multipart/form-data" style="display: none;">
+                <div class="row">
+                <div class="col-lg-12">
+                    <a id="remove_form" class="btn btn-link pull-right" data-toggle="tooltip" title="Remove Form" data-placement="auto">
+                        <i class="fa fa-close"></i>
+                    </a>
+                </div>
+                {% csrf_token %}
+            	<div class="col-lg-6">
+	            	<div class="form-group">
+                        <label for="name"> Candidate Name</label>
+	            		<input id="name" class="form-control" type="text" name="name" required>
+                        <div id="name_error" class="alert alert-danger" style="display:none;"></div>
+                        <div id="name_info" class="alert alert-warning" style="display:none;"></div>
+	            	</div>
+                    <div class="form-group">
+                        <label for="age"> Candidate Age (in Years)</label>
+                        <input id="age" class="form-control" type="number" name="age" min="0" max="80" required>
+                        <div id="age_error" class="alert alert-danger" style="display:none;"></div>
+                        <div id="age_info" class="alert alert-warning" style="display:none;"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="experience"> Experience (in Years)</label>
+                        <input id="experience" class="form-control" type="number" name="experience" min="0" max="25" step="0.01" required>
+                        <div id="experience_error" class="alert alert-danger" style="display:none;"></div>
+                        <div id="experience_info" class="alert alert-warning" style="display:none;"></div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location"> Preferred Location</label>
+                        <input id="location" class="form-control" type="text" name="location" required>
+                        <div id="location_error" class="alert alert-danger" style="display:none;"></div>
+                        <div id="location_info" class="alert alert-warning" style="display:none;"></div>
+                    </div>
+                    
+	            	<div class="form-group">
+                        <label for="email"> Candidate Email</label>
+	            		<input id="email" class="form-control" type="email" name="email" required>
+                        <div id="email_error" class="alert alert-danger" style="display:none;"></div>
+                        <div id="email_error_info" class="alert alert-warning" style="display:none;"></div>
+	            	</div>
+	            	<div class="form-group">
+                        <label for="contact_no"> Contact Number</label>
+	            		<input id="contact_no" class="form-control" type="text" name="contact_no" required>
+                        <div id="contact_no_error" class="alert alert-danger" style="display:none;"></div>
+                        <div id="contact_no_info" class="alert alert-warning" style="display:none;"></div>
+	            	</div>
+	            	
+                    <!--<div class="row" style="height: 250px; overflow: auto; padding-bottom:20px;">-->
+                    <div class="row" >
+
+                        <table class="table-responsive" id="skill_table"  style="">
+                            <caption style="padding-left:15px" align="center">
+                                <label for="skill_table">Candidate Skills</label>
+                            </caption>
+                            <tr id="skill_row0">
+                                <td class="col-lg-10">
+                                    <div class="form-group">
+                                        <input id="skill_input0" name="skills" class="form-control skill_input" type="text" placeholder="Skill" required>
+                                    </div>
+                                </td>
+                                <td class="col-lg-2">
+                                    <div class="form-group">
+                                        <a class="btn btn-info" onClick="append_skill_row();" ><i class="fa fa-plus" aria-hidden="true"></i></a>
+                                    </div>
+                                </td>
+                                <td class="col-lg-2">
+                                    <div class="form-group">
+                                        <a class="btn btn-danger disabled"><i class="fa fa-trash" aria-hidden="true"></i></a>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                </div>
+                <!--./col-lg-6-->
+                <div class="col-lg-6">
+
+                    <div class="form-group">
+                        <label for="current_ctc"> Current CTC (per Anum. in Laks)</label>
+                        <input id="current_ctc" class="form-control" type="number" name="current_ctc" min="0" max="50" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="expected_ctc"> Expected CTC (per Anum. in Laks)</label>
+                        <input id="expected_ctc" class="form-control" type="number" name="expected_ctc" min="0" max="50" step="0.01" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="notice_period">Notice Period</label>
+                        <select class="selectpicker form-control" id="notice_period" name="notice_period">
+                            <option value="IMMEDIATE">Immediate</option>
+                            <option value="2WEEK">2 Weeks</option>
+                            <option value="1MONTH">1 Month</option>
+                            <option value="2MONTHS">2 Months</option>
+                            <option value="MORE">More</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="interview_time"> Interview Time</label>
+                        <input id="interview_time" class="form-control" type="text" name="interview_time" readonly>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="form-group col-lg-10">
+                            <label for="resume"> Candidate Resume (max-size = 1MB)[.doc/.pdf]</label>
+                            <input id="resume" class="form-control file" type="file" name="resume">
+                            <div id="resume_error" class="alert alert-danger" style="display:none;"></div>
+                            <div id="resume_info" class="alert alert-warning" style="display:none;"></div>
+                        </div>
+                        <div class="col-lg-2">
+                            <label style="color: white">_____</label>
+                            <a id="resume_download" class="btn btn-default" href="#" download><i class="fa fa-download" aria-hidden="true"></i></a>
+                        </div>
+                    </div>
+                    <!-- /.row -->
+                    
+                    <div class="row">
+                        <div class="form-group col-lg-10">
+                            <label for="interview_video"> Interview video (max-size = 50MB)[mp4]</label>
+                            <input id="interview_video" class="form-control file" type="file" name="interview_video">
+                            <div id="interview_video_error" class="alert alert-danger" style="display:none;"></div>
+                            <div id="interview_video_info" class="alert alert-warning" style="display:none;"></div>
+                        </div>
+                        <div class="col-lg-2">
+                            <label style="color: white">_____</label>
+                            <a id="interview_video_download" class="btn btn-default" href="#" download><i class="fa fa-download" aria-hidden="true"></i></a>
+                        </div>
+                    </div>
+                    <!-- /.row -->
+                    
+                    
+                    <div class="form-group embed-responsive embed-responsive-16by9">
+                        <video class="embed-responsive-item" id="interview_video_play" controls autoplay loop>
+                            <source src='#' type="video/mp4">
+                            <p class="alert-warning">
+                            Your browser doesnot support videos! 
+                            Use browsers which supports html5 video rendering
+                            </p>
+                        </video>
+                    </div>
+                        
+	            	
+            	</div>
+                <!--/.col-lg-6-->
+                </div>
+                <div class="row">
+                    <div id="general_error" class="alert alert-danger" style="display:none;"></div>
+                    <div id="general_info" class="alert alert-warning" style="display:none;"></div>
+                    <div id="general_message" class="alert alert-dismissable" style="display:none;">
+                        <a href="#" class="close" data-dismiss="alert" aria-label="close">
+                            ×
+                        </a>
+                        <div id="general_msg_body"></div>
+                    </div>
+                </div>
+                <hr>    
+                <!-- /.row -->
+                <div class="row">
+                    <div class="col-lg-4">
+                        <div class="form-group">
+                            <input id="add" class="form-control btn btn-primary" type="submit" name="submit" value="Create/Update">
+                        </div>
+                    </div>
+                    <!--/.col-lg-4-->
+                    <div class="col-lg-4">
+                        <div class="form-group">
+                            <input id="candidate_status" class="form-control btn btn-warning" type="submit" name="submit" value="Acivate/Deactivate">
+                        </div>
+                    </div>
+                    <!--/.col-lg-4-->
+                    <div class="col-lg-4">
+                        <div class="form-group">
+                            <input id="delete" class="form-control btn btn-danger" type="submit" name="submit" value="Delete">
+                        </div>
+                    </div>
+                    <!--/.col-lg-4-->
+                </div>
+                <!-- /.row -->
+            </form>
+        </div>
+        
+    </div>
+    <!-- /.row -->
+
+
+       
+
+    
+
+{% endblock %}
+
+{% block "custom_scripts" %}
+
+    
+    
+    <script src='{% static "bootstrap-fileinput/js/plugins/sortable.min.js" %}'></script>
+    <script src='{% static "bootstrap-fileinput/js/fileinput.min.js" %}'></script>
+
+    <script type="text/javascript">
+        $('[data-toggle="tooltip"]').tooltip();
+    </script>
+
+    <!-- DataTables JavaScript -->
+    <script src='{% static "vendor/datatables/js/jquery.dataTables.min.js" %}'></script>
+    <script src='{% static "vendor/datatables-plugins/dataTables.bootstrap.min.js" %}'></script>
+    
+    <script src='{% static "vendor/datatables-responsive/dataTables.responsive.js" %}'></script>
+    <script src='{% static "vendor/dataTables.buttons.min.js" %}'></script>
+    <script src='{% static "vendor/datatables/js/buttons.bootstrap.min.js" %}'></script>
+
+    
+    <script src='{% static "vendor/datatables/js/dataTables.colReorder.min.js" %}'></script>
+    <script src='{% static "vendor/datatables/js/fnSortNeutral.js" %}'></script>
+
+<!--//cdn.datatables.net/buttons/1.3.1/js/buttons.colVis.min.js -->
+
+    <!-- jquery-ui-1.12.1 -->
+    <script type="text/javascript" src='{% static "jquery-ui-1.12.1/jquery-ui.min.js" %}'></script>
+
+    <!-- Selectize -->
+    <script type="text/javascript" src='{% static "selectize/dist/js/standalone/selectize.js" %}'></script>
+    <script type="text/javascript" src='{% static "selectize/src/utils.js" %}'></script>
+    <script type="text/javascript" src='{% static "selectize/src/plugins/remove_button/plugin.js" %}'>
+    </script>
+    <script type="text/javascript" src='{% static "selectize/src/plugins/drag_drop/plugin.js" %}'></script>
+
+    <!--Date time picker bootstrap-->
+    <script type="text/javascript" src='{% static "bootstrap_extended/moment.js" %}'></script>
+    <script type="text/javascript" src='{% static "bootstrap_extended/bootstrap-datetimepicker.min.js" %}'></script>
+
+    <script type="text/javascript" src='{% static "jquery-ui-1.12.1/jquery-ui.js" %}'></script>
+
+    <script type="text/javascript" src="{% static 'custom_js/csrf-header.js' %}"></script>
+    <script type="text/javascript" src="{% static 'custom_js/candidate_profile.js' %}">
+
+
+    </script>
+
+
+    <!-- Replace the value of the key parameter with your own API key. -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD83pNkdekMHYom8XHDmzuqqTNekDfXY4Q&libraries=places&callback=initGoogleAutocomplete"
+            async defer>
+    </script>
+
+
+
+
+    <script type="text/javascript">
+
+
+
+        $('#candidate_details').on("submit",function(e){
+            e.preventDefault();
+            var formData = new FormData($(this)[0]);
+            // alert(SUBMIT_VALUE);
+            formData.append('save_type', CANDIDATE_NEW);
+            formData.append('submit', SUBMIT_VALUE);
+            $.ajax({
+                url: "{% url 'CandidateProfile' %}",
+                type: 'POST',
+                data: formData,
+                async: false,
+                success: function (data) {
+                    // alert(JSON.stringify(data));
+                    post_response(data);
+                },
+                cache: false,
+                contentType: false,
+                processData: false
+            });
+            
+        });
+
+
+
+    </script>
+
+
+
+{% endblock %}

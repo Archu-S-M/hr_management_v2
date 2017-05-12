@@ -1,0 +1,68 @@
+#===================== HR Management ====================#
+
+Modules
+=======
+
+Admin Module
+-------------
+    1: Dashboard (Template)
+
+        // Tabular:
+        // New Updates from consultancy
+        (Manage/View)
+
+        hyperlink -> consultancy (Template: Manage Consultancy)
+        hyperlink -> candidate (Template: Manage Candidate)
+        Other Details (**)
+
+    2: Manage Consultancy (Template)
+
+        // Manage consultancy profiles
+
+        1: Accept consultancy request (Registration)
+        2: Delete consultancy request (Registration)
+
+    3: Manage Candidate (Template)
+
+        // View and evaluate candidate interview videos and resumes
+
+        1: Interview Video (Download/View)
+        2: Resume (Download/View)
+        3: Other details (If any)
+
+    4: Requirements (Template)
+
+        // add requirements like questionare for interview and required candidate details
+
+        1: Questionnaire (Create/Update/Delete)
+        2: Candidate Details (Create/Update/Delete)
+
+    5: Settings (Template) (Optional)
+
+        // General settings for the admin
+
+
+
+Consultancy Module
+------------------
+
+    1: Dashboard (Template)
+
+        // To view the new requirements from Admin (HR)
+        // Tabular
+
+        1: Candidate Profiles (Status/ Interviewed/ Waiting ...)
+            Hyperlink -> Manage Canidate (Template)
+
+        2: New Requierements (Questionnaires & Candidate details)
+
+    2: Manage Candidate (Template)
+
+        // Add Profiles of candiadates, Upload videos, resumes, other details (If any)
+
+        1: Manage Candidate Profiles (Add/Update/Delete)
+
+        ** Dynamic forms or tables can add details like
+            i) Interview videos
+            ii) Resumes
+            iii) Other details (If any)

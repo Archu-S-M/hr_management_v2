@@ -1,0 +1,86 @@
+<!-- Navigation -->
+<nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+	<div class="navbar-header">
+		<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+			<span class="sr-only">Toggle navigation</span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+			<span class="icon-bar"></span>
+		</button>
+		<a class="navbar-brand" href="#">HR Management</a>
+	</div>
+	<!-- /.navbar-header -->
+	<ul class="nav navbar-top-links navbar-right">
+		
+		<!-- /.dropdown -->
+		<li class="dropdown">
+			<a class="dropdown-toggle" data-toggle="dropdown" href="#">
+				<i class="fa fa-user fa-fw"></i> {{ user.get_username }} <i class="fa fa-caret-down"></i>
+			</a>
+			<ul class="dropdown-menu dropdown-user">
+
+				<li class="divider"></li>
+				<li><a href="{% url 'Login' %}"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
+				</li>
+			</ul>
+			<!-- /.dropdown-user -->
+		</li>
+		<!-- /.dropdown -->
+	</ul>
+	<!-- /.navbar-top-links -->
+
+	<div class="navbar-default sidebar" role="navigation">
+		<div class="sidebar-nav navbar-collapse">
+			<ul class="nav" id="side-menu">
+				
+				{% for sidebar in pages %}
+					<li>
+
+
+						{% if not sidebar.child %}
+
+							<a href="{% url sidebar.url %}">
+							<i class="{{ sidebar.icon }}"></i> {{ sidebar.name }}</a>
+
+						{% else %}
+
+							<a href="#"><i class="{{ sidebar.icon }}"></i> {{ sidebar.name}}<span class="fa arrow"></span></a>
+							<ul class="nav nav-second-level">
+
+							{% for second_sidebar in sidebar.child %}
+								<li>
+
+								{% if not second_sidebar.child %}
+								
+								
+									<a href="{% url second_sidebar.url %}">{{ second_sidebar.name}} </a>
+								
+
+								{% else %}
+									<a href="#">{{ second_sidebar.name }}<span class="fa arrow"></span></a>
+									<ul class="nav nav-third-level">
+
+										{% for third_sidebar in second_sidebar.child %}
+										<li>
+											<a href="{% url third_sidebar.url %}">{{ third_sidebar.name }}</a>
+										</li>
+										{% endfor %}
+									</ul>
+								{% endif %}
+
+								</li>
+							{% endfor %}
+
+							</ul>
+
+						{% endif %}
+						
+						
+					</li>	
+				{% endfor %}
+			</ul>
+		</div>
+		<!-- /.sidebar-collapse -->
+	</div>
+	<!-- /.navbar-static-side -->
+</nav>

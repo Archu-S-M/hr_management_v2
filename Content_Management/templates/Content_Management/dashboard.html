@@ -1,0 +1,76 @@
+{% extends "Content_Management/theme.html" %}
+{% load staticfiles %}
+
+
+
+{% block "custom_styles" %}
+	<!-- DataTables CSS -->
+    <link href='{% static "vendor/datatables-plugins/dataTables.bootstrap.css" %}' rel="stylesheet">
+    <!-- DataTables  buttons CSS -->
+    <!--<link href='{% static "vendor/buttons.dataTables.min.css" %}' rel="stylesheet">-->
+    <link href='{% static "vendor/datatables/css/buttons.bootstrap.min.css" %}' rel="stylesheet">
+    <link href='{% static "vendor/datatables/css/colReorder.bootstrap.min.css" %}' rel="stylesheet">
+    
+
+    <!-- DataTables Responsive CSS -->
+    <link href='{% static "vendor/datatables-responsive/dataTables.responsive.css" %}' rel="stylesheet">
+
+{% endblock %}
+
+
+
+{% block "body_contents" %}
+    <div class="row">
+        <div class="col-lg-12">
+            <h1 class="page-header" align="center">
+                Activities
+            </h1>
+        </div>
+        <!-- /.col-lg-12 -->
+    </div>
+    <!-- /.row -->
+
+    <div class="row">
+    	<table width="100%" class="table table-hover" id="activity_table">
+
+            <thead>
+                <tr>
+                    <th>Activities</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <!--<tbody>
+            	
+            </tbody>-->
+        </table>
+    </div>
+{% endblock %}
+
+
+
+
+{% block "custom_scripts" %}
+
+    <script type="text/javascript">
+         var URL_DICT = {
+            dashboard:"{% url 'Dashboard' %}"
+         }
+
+    </script>
+
+	<!-- DataTables JavaScript -->
+    <script src='{% static "vendor/datatables/js/jquery.dataTables.min.js" %}'></script>
+    <script src='{% static "vendor/datatables-plugins/dataTables.bootstrap.min.js" %}'></script>
+    
+    <script src='{% static "vendor/datatables-responsive/dataTables.responsive.js" %}'></script>
+    <script src='{% static "vendor/dataTables.buttons.min.js" %}'></script>
+    <script src='{% static "vendor/datatables/js/buttons.bootstrap.min.js" %}'></script>
+
+
+    <!-- Script for the page -->
+    <script type="text/javascript" src="{% static 'custom_js/csrf-header.js' %}"></script>
+    <script src='{% static "custom_js/dashboard.js" %}'></script>
+
+{% endblock %}
+
+
