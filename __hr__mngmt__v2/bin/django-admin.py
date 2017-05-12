@@ -1,0 +1,5 @@
+#!/var/www/html/hr_management_v2/__hr__mngmt__v2/bin/python3.5
+from django.core import management
+
+if __name__ == "__main__":
+    management.execute_from_command_line()

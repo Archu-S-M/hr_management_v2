@@ -1,0 +1,9 @@
+.mCS-dark.mCSB_scrollTools {width: 15px; background-color: transparent; border:none;}
+.mCS-dark.mCSB_scrollTools .mCSB_dragger .mCSB_dragger_bar{ 
+	border-radius: 0;
+	width: 5px;
+	background-color: #aaa; 
+}
+
+.mCS-dark.mCSB_scrollTools .mCSB_draggerRail{ background-color: #ccc; } 
+
