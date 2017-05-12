@@ -18,6 +18,8 @@ from functools import reduce
 from Admin_Management.models import CustomUser
 from Content_Management.models import Candidate
 from Content_Management.models import Skillset
+from Content_Management.models import Activities
+from Content_Management.models import Requirements
 
 
 '''
@@ -385,17 +387,6 @@ class ExtendCandidateProfile:
                 skill_query).filter(
                 **filter_queries).select_related()
 
-        # print(candidate.query)
-
-        # ================================================
-        # only for reference
-        # {"candidate": {"name": "candidate_name",
-        #                "id": "candidate_pk"},
-        #  "experience": "Experience in Years",
-        #  "skills": "Comma separated experiences",
-        #  "expected_ctc": "Expected ctc in Lacks",
-        #  "notice": "Type of notice period"}
-        # ================================================
 
         candidate_temp_array = {}
         candidate_details = [skills for skills in candidate]
