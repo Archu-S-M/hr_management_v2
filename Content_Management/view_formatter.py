@@ -1,312 +1,45 @@
-# Django libraries
-from django.shortcuts import render, redirect
-from django.http import HttpResponse
-from django.views.generic import View
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.core.urlresolvers import resolve
-from django.contrib.auth import authenticate, login, logout
+'''
+The file to add extra formatting to the views
+'''
+
+
 from django.core.files.storage import FileSystemStorage
 from django.conf import settings
 from django.db.models import Q
 
 
 
-# Pyhon special libraries
-import json, os
+# Python special libraries
+import os
 from datetime import datetime
 from functools import reduce
 
 # custom imports
-from Admin_Management.user_access import user_pages
 from Admin_Management.models import CustomUser
 from Content_Management.models import Candidate
 from Content_Management.models import Skillset
-from Content_Management.models import Activities
-from Content_Management.models import Requirements
-
-from .view_formatter import ExtendCandidateProfile
-
-# for test
-from urllib import request as urlRequest
 
 
-#==================================================================
-
-
-# View for dashboard
-class Dashboard(LoginRequiredMixin, View):
-
-    login_url = "/"
-    redirect_field_name = "Login"
-
-    template = "Content_Management/dashboard.html"
-    context = locals()
-
-    def get(self, request):
-
-        user_properties = user_pages(request.user)
-        user_property_values = user_properties.getUserViews()
-
-        self.context["pages"], self.context["access"] = (user_property_values["pages"],
-                                                         user_property_values["access"])
-
-        current_url = resolve(request.path_info).url_name
-
-        if current_url in self.context["access"] or self.context["access"] == ["All"]:
-            return render(request, self.template, self.context)
-
-        elif "Register" in self.context["access"]:
-            return redirect("Register")
-
-        else:
-            return redirect("Login")
-
-
-    def post(self, request):
-
-        # initialize the response object
-        response = {
-        }
-
-        print(request.POST)
-
-        method = request.POST["submit"]
-
-        if method == "get_activities":
-
-            response = {
-                "status": "success",
-                "data": []
-            }
-
-            if request.user.is_superuser:
-                activities = Activities.objects.all().order_by("-created_at")
-
-            else:
-                activities = Activities.objects.filter(
-                    Q(consultancy=request.user) | Q(consultancy=None)
-                ).order_by("-created_at")
-
-            for activity in activities:
-                created_at = activity.created_at.strftime("%d/%m/%Y %I:%M %p")
-                consultancy_id = (activity.consultancy.id if activity.consultancy else False)
-                candidate_id = (activity.candidate.id if activity.candidate else False)
-                requirement_id = (activity.requirement.id if activity.requirement else False)
-                question_id = (activity.question.id if activity.question else False)
-                response['data'].append(
-                    {"activities": {
-                        "activity": activity.activity,
-                        "consultancy_id": consultancy_id,
-                        "candidate_id": candidate_id,
-                        "eligibility_id": requirement_id,
-                        "question_id": question_id
-                    },
-                        "date": created_at}
-                )
-
-        return HttpResponse(json.dumps(response), content_type="application/json")
-
-
-
-# ===========================================================================
-# View for Mange Consultancy
-class ManageConsultancy(LoginRequiredMixin, View):
-
-    login_url = "/"
-    redirect_field_name = "Login"
-
-    template = "Content_Management/manage_consultancy.html"
-    context = locals()
-
-    def get(self, request):
-
-        user_properties = user_pages(request.user)
-        user_property_values = user_properties.getUserViews()
-
-        self.context["pages"], self.context["access"] = (user_property_values["pages"],
-                                                         user_property_values["access"])
-
-        current_url = resolve(request.path_info).url_name
-
-        if current_url in self.context["access"] or self.context["access"] == ["All"]:
-            return render(request, self.template, self.context)
-
-        elif "Register" in self.context["access"]:
-            return redirect("Register")
-
-        else:
-            return redirect("Login")
-
-    # ===================================================================
-
-    def post(self, request):
-
-
-        # initialize the response object
-        response = {
-        }
-
-        print(request.POST)
-
-        method = request.POST["submit"]
-
-        if method == "get_consultancy":
-            response = {
-                "status": "success",
-                "data": []
-            }
-
-
-            # to get the data from the consultancy
-            consultancy = CustomUser.objects.filter(~Q(id=request.user.id)).order_by(
-                    "is_staff", "-date_joined").distinct()
-
-            # print(consultancy.query)
-            for users in consultancy:
-                consultancy_name = users.consultancy_name
-                website = users.website
-                phone_no = users.phone_no
-                registered_time = users.date_joined.strftime("%d/%m/%Y %I:%M:%S %p")
-                status = users.is_staff
-
-                response['data'].append({
-                    "consultancy": {"name":consultancy_name,"id":users.id},
-                    "website": website,
-                    "phone_no": phone_no,
-                    "datetime": registered_time,
-                    "status": status
-                })
-
-
-            return HttpResponse(json.dumps(response),
-                                content_type="application/json")
-
-        # Update the consultancy from newbie to valid consultancy
-        elif method == "update_consultancy":
-
-            response = {
-                "status": "no data",
-                "data": []
-            }
-
-            data = request.POST
-
-            if data:
-
-                consultancy_id = data["filter[id]"]
-                try:
-                    consultancy = CustomUser.objects.get(pk=int(consultancy_id))
-                    activity = ""
-                    if consultancy.is_staff:
-                        consultancy.is_staff = False
-                        activity = "Consultancy Blocked"
-                    else:
-                        consultancy.is_staff = True
-                        activity = "Consultancy Approved"
-                    consultancy.save()
-
-                    activities = Activities(consultancy=consultancy,
-                                            activity=activity,
-                                            )
-
-                    activities.save()
-                    response["status"] = "success"
-                except:
-                    response["status"] = "Invalid consultancy"
-
-            return HttpResponse(json.dumps(response), content_type="application/json")
-
-
-
-# ===========================================================================
-# View for candidate profile
-class CandidateProfile(LoginRequiredMixin, View):
-
-    login_url = "/"
-    redirect_field_name = "Login"
+'''
+Class for the extended view of consultancy
+'''
+class ExtendCandidateProfile:
 
 
     post_dt_format1 = "%d/%m/%Y %I:%M %p"
     post_dt_format2 = "%d/%m/%Y %I:%M %P"
 
-    video_extensions = ["mp4","mpeg4"]
-    resume_extensions = ["pdf","doc","docx"]
+    video_extensions = ["mp4", "mpeg4"]
+    resume_extensions = ["pdf", "doc", "docx"]
 
-    template = "Content_Management/candidate_profile.html"
-    context = locals()
-
-
-    def get(self, request):
-
+    def __init__(self):
         '''
-        to get the get request and show the templates for profile page
+        Initialization of requests
         :param request:
-        :return: rendered page
         '''
 
-        self.context["candidate_data"] = {"name": "name"}
-        user_properties = user_pages(request.user)
-        user_property_values = user_properties.getUserViews()
-        self.context["pages"], self.context["access"] = (user_property_values["pages"],
-                                                         user_property_values["access"])
-        current_url = resolve(request.path_info).url_name
-        if current_url in self.context["access"] or self.context["access"] == ["All"]:
-            return render(request, self.template, self.context)
 
-        elif "Register" in self.context["access"]:
-            return redirect("Register")
-
-        else:
-            return redirect("Login")
-
-
-
-    # Uploading or updating candidate profiles
-    def post(self, request):
-
-        # response set for the post request
-        # -------------------------------------
-        response = {
-            "errors": [],
-            "info": [],
-            "message": [],
-            "video_url": "#",
-            "resume_url": "#",
-        }
-
-        # print(request.POST)
-
-        # get the data from the request
-        # ==================================
-        data = request.POST
-        # ==================================
-
-        post_method = data["submit"]
-
-        # condition to check whether is the new candidate or updating the existing one!
-        # ==================================================
-        if post_method == "Create/Update":
-            response = ExtendCandidateProfile().validate_create_or_update(request, data)
-            return HttpResponse(json.dumps(response), content_type="application/json")
-
-        elif post_method == "Activate/Deactivate":
-
-            '''Yet to code'''
-
-        elif post_method == "get_filtered_data":
-            response = ExtendCandidateProfile().get_filtered_data(request, data)
-            return HttpResponse(json.dumps(response), content_type="application/json")
-
-        elif post_method == "get_full_details":
-            response = ExtendCandidateProfile().get_full_details(request, data)
-            return HttpResponse(json.dumps(response), content_type="application/json")
-
-        elif post_method == "fill_filters":
-            response = ExtendCandidateProfile().fill_filters(request, data)
-            return HttpResponse(json.dumps(response), content_type="application/json")
-
-        return redirect("CandidateProfile")
-
+    # --------------------------------------------------------------
     # [FUNCTION form validation and database update]
     # ==============================================================
     def validate_create_or_update(self, request, data):
@@ -378,7 +111,6 @@ class CandidateProfile(LoginRequiredMixin, View):
                     extension = video_name.split(".")[-1]
                     new_video_name = ""
 
-
                     # check for valid extension [VIDEO]
                     # ---------------------------
                     if extension not in self.video_extensions:
@@ -431,7 +163,6 @@ class CandidateProfile(LoginRequiredMixin, View):
                             os.remove(os.path.join(settings.MEDIA_ROOT, new_video_name))
 
                         video = fs.save(new_video_name, interview_video)
-
 
                     if resume_name and resume_name != "#":
                         if os.path.isfile(os.path.join(settings.MEDIA_ROOT, new_resume_name)):
@@ -513,8 +244,6 @@ class CandidateProfile(LoginRequiredMixin, View):
                                       consultancy=consultancy)
                 candidate.save()
 
-
-
                 # adding skill sets in the table
                 for skills in skill_set:
                     # print(skills)
@@ -522,15 +251,12 @@ class CandidateProfile(LoginRequiredMixin, View):
                                                   candidate_skill=skills)
                     skill_set_instance.save()
 
-
-
                 activities = Activities(consultancy=consultancy,
                                         candidate=candidate,
                                         activity="New Candidate Created",
                                         )
 
                 activities.save()
-
 
         # ================================================================================
         # render and give the new values to the posted page
@@ -544,10 +270,8 @@ class CandidateProfile(LoginRequiredMixin, View):
             if not response["message"]:
                 response["message"] = {"success": "Successfully Added Information"}
 
-
         # return the response object with status
         return response
-
 
     # [FUNCTION generate the full details of the candidate]
     # ===============================================================================
@@ -571,7 +295,7 @@ class CandidateProfile(LoginRequiredMixin, View):
                 "expected_ctc": "",
                 "email": "",
                 "contact_no": "",
-                "skills":[],
+                "skills": [],
                 "notice_period": "",
                 "interview_time": "",
                 "resume_url": "#",
@@ -579,10 +303,8 @@ class CandidateProfile(LoginRequiredMixin, View):
             }
         }
 
-
         # ------------------------------------------
         candidate_id = int(data["id"])
-
 
         # consultancy = CustomUser.objects.get(pk=request.user.id)
         candidate = Candidate.objects.get(pk=candidate_id)
@@ -604,10 +326,8 @@ class CandidateProfile(LoginRequiredMixin, View):
         interview_time = candidate.candidate_interview_time
         interview_time = interview_time.strftime(self.post_dt_format1)
         response["candidate_details"]["interview_time"] = interview_time
-        response["candidate_details"]["resume_url"] = '/media/'+candidate.candidate_resume
-        response["candidate_details"]["video_url"] = '/media/'+candidate.candidate_interview
-
-
+        response["candidate_details"]["resume_url"] = '/media/' + candidate.candidate_resume
+        response["candidate_details"]["video_url"] = '/media/' + candidate.candidate_interview
 
         # print(response)
         return response
@@ -628,7 +348,6 @@ class CandidateProfile(LoginRequiredMixin, View):
         response = {
             "candidate_details": []
         }
-
 
         # query for other objects
         filter_queries = {}
@@ -654,8 +373,6 @@ class CandidateProfile(LoginRequiredMixin, View):
             filter_queries["candidate__preferred_location"] = location
         if consultancy_id:
             filter_queries["candidate__consultancy__id"] = consultancy_id
-
-
 
         if not request.user.is_superuser:
             candidate = Skillset.objects.filter(
@@ -683,8 +400,6 @@ class CandidateProfile(LoginRequiredMixin, View):
         candidate_temp_array = {}
         candidate_details = [skills for skills in candidate]
 
-
-
         # rearranging the data for better mapping
         for can in candidate_details:
             consultancy_name = can.candidate.consultancy.consultancy_name
@@ -697,9 +412,9 @@ class CandidateProfile(LoginRequiredMixin, View):
             notice = can.candidate.notice_period
 
             if id not in candidate_temp_array:
-                candidate_temp_array[id] = {"name":"",
-                                            "skills":"",
-                                            "experience":""
+                candidate_temp_array[id] = {"name": "",
+                                            "skills": "",
+                                            "experience": ""
                                             }
             candidate_temp_array[id]["consultancy"] = consultancy_name
             candidate_temp_array[id]["name"] = name
@@ -708,8 +423,6 @@ class CandidateProfile(LoginRequiredMixin, View):
             candidate_temp_array[id]["experience"] = experience
             candidate_temp_array[id]["expected_ctc"] = expected_ctc
             candidate_temp_array[id]["notice"] = notice
-
-
 
         # print(candidate_temp_array)
         # arrange the data in response format
@@ -726,7 +439,6 @@ class CandidateProfile(LoginRequiredMixin, View):
 
             response["candidate_details"].append(temp)
 
-
         # print(response)
 
         response["candidate_details"] = self.custom_ordering(skill_array,
@@ -738,13 +450,10 @@ class CandidateProfile(LoginRequiredMixin, View):
 
         return response
 
-
-
-
     # [FUNCTION to fill the filters with valid data]
     # --------------------------------------------------
 
-    def fill_filters(self, request, data = None):
+    def fill_filters(self, request, data=None):
         '''
 
         :param request:
@@ -760,8 +469,6 @@ class CandidateProfile(LoginRequiredMixin, View):
             "locations": [],
             "experience": []
         }
-
-
 
         # ---------
         if data:
@@ -786,7 +493,7 @@ class CandidateProfile(LoginRequiredMixin, View):
 
                         response[filter_name].append({"label": consultancy_name,
                                                       "value": consultancy_pk})
-                    # print(response)
+                        # print(response)
                 else:
                     consultancy = CustomUser.objects.get(user=request.user)
                     consultancy_name = consultancy.consultancy_name
@@ -809,7 +516,7 @@ class CandidateProfile(LoginRequiredMixin, View):
                     "candidate_skill").distinct()
 
                 for skill in skills:
-                    response[filter_name].append({"label":skill, "value":skill})
+                    response[filter_name].append({"label": skill, "value": skill})
 
             # ---------------------------------------------------------
             # to get the filters for the candidate preferred location
@@ -842,7 +549,6 @@ class CandidateProfile(LoginRequiredMixin, View):
                     "candidate_experience").distinct()
 
                 for experience in experiences:
-
                     response[filter_name].append({"label": str(experience) +
                                                            " Year(s)", "value": experience})
 
@@ -851,7 +557,7 @@ class CandidateProfile(LoginRequiredMixin, View):
     # ======================================================================================
     # custom function to sort the candidate details according to the rearrangement of skills
     # ======================================================================================
-    def custom_ordering(self, priority_val = [], list_data=[]):
+    def custom_ordering(self, priority_val=[], list_data=[]):
         '''
         :param priority_val:
         :param list_data:
@@ -864,144 +570,4 @@ class CandidateProfile(LoginRequiredMixin, View):
                                    key=lambda k: (val.lower() not in k["skills"].lower()))
 
         # print(list_data)
-        return(list_data)
-
-
-# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# View for questionnaire
-class Questionnaire(LoginRequiredMixin, View):
-
-    login_url = "/"
-    redirect_field_name = "Login"
-
-    template = "Content_Management/questionnaire.html"
-    context = locals()
-
-    def get(self, request):
-
-        user_properties = user_pages(request.user)
-        user_property_values = user_properties.getUserViews()
-
-        self.context["pages"], self.context["access"] = (user_property_values["pages"],
-                                                         user_property_values["access"])
-
-        current_url = resolve(request.path_info).url_name
-
-        if current_url in self.context["access"] or self.context["access"] == ["All"]:
-            return render(request, self.template, self.context)
-
-        elif "Register" in self.context["access"]:
-            return redirect("Register")
-
-        else:
-            return redirect("Login")
-
-# ===========================================================================
-# View for Candidates eligibility
-class Eligibility(LoginRequiredMixin, View):
-
-    login_url = "/"
-    redirect_field_name = "Login"
-
-    template = "Content_Management/eligibility.html"
-    context = locals()
-
-    def get(self, request):
-
-        user_properties = user_pages(request.user)
-        user_property_values = user_properties.getUserViews()
-
-        self.context["pages"], self.context["access"] = (user_property_values["pages"],
-                                                         user_property_values["access"])
-
-        current_url = resolve(request.path_info).url_name
-
-        if current_url in self.context["access"] or self.context["access"] == ["All"]:
-            return render(request, self.template, self.context)
-
-        elif "Register" in self.context["access"]:
-            return redirect("Register")
-
-        else:
-            return redirect("Login")
-
-    # ================================================================================
-    def post(self, request):
-
-        # to get the new requirements
-
-        method = request.POST["submit"]
-
-
-        if method == "get_eligibility":
-            # print(method)
-
-            # response object to return
-            response = {
-                "eligibility" : [],
-                "status": "Failure"
-            }
-
-            requirements = Requirements.objects.all().order_by("created_at")
-
-            for req in requirements:
-                name = req.requirement_name
-                id = req.id
-
-                response["eligibility"].append({
-                    "eligibility": name,
-                    "id": id
-                })
-
-
-
-
-            return HttpResponse(json.dumps(response), content_type="application/json")
-
-        elif method == "post_eligibility":
-
-            new_eligibility = request.POST["eligibility"]
-
-            response = {
-                "id": None,
-            }
-
-            if new_eligibility:
-
-                requirements = Requirements(requirement_name=new_eligibility)
-
-                requirements.save()
-
-                id = requirements.id
-                response["id"] = id
-
-                activity = Activities(requirement=requirements)
-                activity.activity = "Added New Eligibility"
-                activity.save()
-
-
-
-                return HttpResponse(json.dumps(response), content_type="application/json")
-
-
-        elif method == "dlt_eligibility":
-
-
-
-            id = request.POST["id"]
-            response = {
-                "status": "Failure"
-            }
-
-            try:
-                requirements = Requirements.objects.get(pk=int(id)).delete()
-                activity = Activities(requirement=requirements)
-                activity.activity = "Eligibility Deleted"
-                activity.save()
-
-                response["status"] = "Success"
-            except:
-                pass
-
-
-            return HttpResponse(json.dumps(response), content_type="application/json")
+        return (list_data)
