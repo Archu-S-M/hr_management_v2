@@ -22,7 +22,7 @@ from Admin_Management.models import CustomUser
 from Content_Management.models import Candidate
 from Content_Management.models import Skillset
 from Content_Management.models import Activities
-from Content_Management.models import Requirements
+from Content_Management.models import Positions
 
 from Content_Management.view_formatter import ExtendCandidateProfile
 
