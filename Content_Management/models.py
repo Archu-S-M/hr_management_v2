@@ -54,7 +54,7 @@ class Questions(models.Model):
 
 # The activity table to store the activities performed by consultancy or hr
 class Activities(models.Model):
-    consultancy = models.ForeignKey(CustomUser, null=True, default=None ,on_delete=models.CASCADE)
+    consultancy = models.ForeignKey(CustomUser, null=True, default=None, on_delete=models.CASCADE)
     candidate = models.ForeignKey(Candidate, null=True, default=None)
     requirement = models.ForeignKey(Requirements, null=True, default=None)
     question = models.ForeignKey(Questions, null=True, default=None)

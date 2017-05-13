@@ -1,3 +1,9 @@
+
+/*Remove the button and link dotted focus*/
+a:focus, button:focus {outline:none !important;}
+
+
+
 .mCS-dark.mCSB_scrollTools {width: 15px; background-color: transparent; border:none;}
 .mCS-dark.mCSB_scrollTools .mCSB_dragger .mCSB_dragger_bar{ 
 	border-radius: 0;

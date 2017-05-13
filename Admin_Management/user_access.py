@@ -27,15 +27,15 @@ class user_pages():
 
                                     {"name": "Requirements",
                                      "url": None,
-                                     "child": [{"name": "Questionnaire",
-                                                "url": "Questionnaire",
-                                                "child": [],
-                                                "icon": ""},
+                                     "child": [{"name"  : "Questionnaire",
+                                                "url"   : "Questionnaire",
+                                                "child" : [],
+                                                "icon"  : ""},
 
-                                               {"name": "Candidate Eligibility",
-                                                "url": "Eligibility",
-                                                "child": [],
-                                                "icon": ""},
+                                               {"name"  : "Requirement Settings",
+                                                "url"   : "Requirements",
+                                                "child" : [],
+                                                "icon"  : ""},
                                                ],
                                      "icon": "fa fa-lightbulb-o fa-fw"},
 
@@ -57,7 +57,7 @@ class user_pages():
                                               {"ManageConsultancy": ["view","update","delete"]},
                                               {"CandidateProfile": ["view"]},
                                               {"Questionnaire": ["view","update","create","delete"]},
-                                              {"Eligibility": ["view", "update", "create","delete"]},
+                                              {"Requirements": ["view", "update", "create","delete"]},
                                               {"Settings": ["view", "update", "create","delete"]},
                                             ]
             return self.user_views
@@ -67,14 +67,14 @@ class user_pages():
 
             page_1, _, page_2, page_3, *_ = self.user_views["pages"]
 
-            self.user_views["pages"] = [page_1, page_2, page_3]
+            self.user_views["pages"]  = [page_1, page_2, page_3]
             self.user_views["access"] = [page_1["url"], page_2["url"],
                                          page_3["url"], page_3["child"][0]["url"],
                                          page_3["child"][1]["url"]]
             self.user_views["permissions"] = [{"Dashboard": ["view"]},
                                               {"CandidateProfile": ["view","create","update","delete"]},
                                               {"Questionnaire": ["view"]},
-                                              {"Eligibility": ["view"]},
+                                              {"Requirements": ["view"]},
                                              ]
 
             return self.user_views

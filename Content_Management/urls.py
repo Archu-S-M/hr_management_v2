@@ -8,6 +8,6 @@ urlpatterns = [
     url(r'ManageConsultancy/',ManageConsultancy.as_view(),name="ManageConsultancy"),
     url(r'CandidateProfile/',CandidateProfile.as_view(),name="CandidateProfile"),
     url(r'Questionnaire/',Questionnaire.as_view(),name="Questionnaire"),
-    url(r'Eligibility/',Eligibility.as_view(),name="Eligibility"),
+    url(r'Requirements/',Requirements.as_view(),name="Requirements"),
     url(r'Settings/',Dashboard.as_view(),name="Settings"),
 ]

@@ -98,7 +98,7 @@ class Dashboard(LoginRequiredMixin, View):
                         "activity": activity.activity,
                         "consultancy_id": consultancy_id,
                         "candidate_id": candidate_id,
-                        "eligibility_id": requirement_id,
+                        "requirements_id": requirement_id,
                         "question_id": question_id
                     },
                         "date": created_at}
@@ -340,13 +340,13 @@ class Questionnaire(LoginRequiredMixin, View):
             return redirect("Login")
 
 # ===========================================================================
-# View for Candidates eligibility
-class Eligibility(LoginRequiredMixin, View):
+# View for Candidates requirements
+class Requirements(LoginRequiredMixin, View):
 
     login_url = "/"
     redirect_field_name = "Login"
 
-    template = "Content_Management/eligibility.html"
+    template = "Content_Management/requirements.html"
     context = locals()
 
     def get(self, request):
@@ -371,80 +371,8 @@ class Eligibility(LoginRequiredMixin, View):
     # ================================================================================
     def post(self, request):
 
-        # to get the new requirements
-
-        method = request.POST["submit"]
-
-
-        if method == "get_eligibility":
-            # print(method)
-
-            # response object to return
-            response = {
-                "eligibility" : [],
-                "status": "Failure"
-            }
-
-            requirements = Requirements.objects.all().order_by("created_at")
-
-            for req in requirements:
-                name = req.requirement_name
-                id = req.id
-
-                response["eligibility"].append({
-                    "eligibility": name,
-                    "id": id
-                })
-
-
-
-
-            return HttpResponse(json.dumps(response), content_type="application/json")
-
-        elif method == "post_eligibility":
-
-            new_eligibility = request.POST["eligibility"]
-
-            response = {
-                "id": None,
-            }
-
-            if new_eligibility:
-
-                requirements = Requirements(requirement_name=new_eligibility)
-
-                requirements.save()
-
-                id = requirements.id
-                response["id"] = id
-
-                activity = Activities(requirement=requirements)
-                activity.activity = "Added New Eligibility"
-                activity.save()
-
-
-
-                return HttpResponse(json.dumps(response), content_type="application/json")
-
-
-        elif method == "dlt_eligibility":
-
-
-
-            id = request.POST["id"]
-            response = {
-                "status": "Failure"
-            }
-
-            try:
-                requirements = Requirements.objects.get(pk=int(id)).delete()
-                activity = Activities(requirement=requirements)
-                activity.activity = "Eligibility Deleted"
-                activity.save()
-
-                response["status"] = "Success"
-            except:
-                pass
-
-
-            return HttpResponse(json.dumps(response), content_type="application/json")
+        '''
+        Post values for the requirements
+        :param request:
+        :return:
+        '''
