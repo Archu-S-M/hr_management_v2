@@ -23,6 +23,8 @@ from Content_Management.models import Candidate
 from Content_Management.models import Skillset
 from Content_Management.models import Activities
 from Content_Management.models import Positions
+from Content_Management.models import MasterSkills
+from Content_Management.models import Questions
 
 from Content_Management.view_formatter import ExtendCandidateProfile
 
@@ -91,14 +93,14 @@ class Dashboard(LoginRequiredMixin, View):
                 created_at = activity.created_at.strftime("%d/%m/%Y %I:%M %p")
                 consultancy_id = (activity.consultancy.id if activity.consultancy else False)
                 candidate_id = (activity.candidate.id if activity.candidate else False)
-                requirement_id = (activity.requirement.id if activity.requirement else False)
+                position_id = (activity.position.id if activity.position else False)
                 question_id = (activity.question.id if activity.question else False)
                 response['data'].append(
                     {"activities": {
                         "activity": activity.activity,
                         "consultancy_id": consultancy_id,
                         "candidate_id": candidate_id,
-                        "requirements_id": requirement_id,
+                        "requirements_id": position_id,
                         "question_id": question_id
                     },
                         "date": created_at}
@@ -339,6 +341,139 @@ class Questionnaire(LoginRequiredMixin, View):
         else:
             return redirect("Login")
 
+
+    def post(self, request):
+
+        response = {
+            "data" : [],
+            "message": "",
+            "msg_type": "danger"
+        }
+
+
+        # valid extensions
+        ext = ["pdf"]
+
+        print(request.POST)
+
+        method = request.POST["post_for"]
+
+        # to get the position filter values
+        # =======================================================================
+        if method == "get_position_filter":
+
+            positions = Positions.objects.all().order_by("position_name")
+
+            for position in positions:
+
+                response["data"].append({
+                    "label": position.position_name,
+                    "value": position.id
+                })
+
+
+        # to get the questions according to the position
+        # =======================================================================
+
+        if method == "get_questions":
+
+            position_id = request.POST["position_id"]
+            question_name = "#"
+            question_id = 0
+
+            if int(position_id) != 0:
+                if Questions.objects.filter(position_id=int(position_id)).exists():
+                    questions = Questions.objects.get(position_id=int(position_id))
+
+                    if questions:
+                        question_name = questions.question
+                        question_id = questions.id
+
+
+
+            response["data"] = {
+                "question_url": "/media/%s" % question_name,
+                "question_id": question_id
+            }
+
+            print(response)
+        # to upload the questionnaire
+        # =======================================================================
+        if method == "upload_questionnaire":
+
+            question_id = request.POST["question_id"]
+            position_id = request.POST["position_id"]
+
+            new_question_name = "#"
+
+            if request.FILES:
+
+                question_file = request.FILES["questions"]
+                question_file_name = question_file.name
+                # print(question_file_name)
+
+                if question_file_name and question_file_name != "#":
+                    # checking the extensions
+                    extension = question_file_name.split(".")[-1]
+                    if extension not in ext:
+                        response["message"] = "Question is not in the recommended format"
+                        response["msg_type"] = "danger"
+                        return HttpResponse(json.dumps(response), content_type="application/json")
+                    else:
+
+                        if int(question_id) != 0 or int(position_id) != 0:
+                            # for valid question file
+                            new_question_name = "Question-%s.%s" % (str(position_id), extension)
+
+                            fs = FileSystemStorage()
+                            if question_file_name and question_file_name != "#":
+                                if os.path.isfile(os.path.join(settings.MEDIA_ROOT, new_question_name)):
+                                    os.remove(os.path.join(settings.MEDIA_ROOT, new_question_name))
+
+                                q = fs.save(new_question_name, question_file)
+
+
+                            # to update question
+                            if int(question_id) != 0:
+                                question = Questions.objects.get(pk=int(question_id))
+                                question.question = new_question_name
+                                question.save()
+
+                            # to add question
+                            elif int(question_id) == 0 and int(position_id) != 0:
+                                if Questions.objects.filter(position_id=int(position_id)).exists():
+                                    question = Questions(question=new_question_name,
+                                                         position_id=int(position_id))
+                                    question.save()
+                                else:
+                                    question = Questions.objects.get(position_id=int(position_id))
+                                    question.question = new_question_name
+                                    question.save()
+
+
+                            response["message"] = "Successfully added questions"
+                            response["msg_type"] = "success"
+
+
+                        else:
+                            response["message"] = "Select a position to add or update"
+                            response["msg_type"] = "danger"
+
+
+                else:
+                    response["message"] = "No changes detected"
+                    response["msg_type"] = "info"
+
+            else:
+                response["message"] = "No changes detected"
+                response["msg_type"] = "info"
+
+            response["data"] = {
+                "question_url": "/media/%s" % new_question_name
+            }
+
+        return HttpResponse(json.dumps(response), content_type="application/json")
+
 # ===========================================================================
 # View for Candidates requirements
 class Requirements(LoginRequiredMixin, View):
@@ -374,5 +509,206 @@ class Requirements(LoginRequiredMixin, View):
         '''
         Post values for the requirements
         :param request:
-        :return:
+        :return response:
         '''
+
+        response = {
+            "data": [],
+            "message": False
+
+        }
+
+        print(request.POST)
+        method = request.POST["post_for"]
+
+
+        # Get the position details
+        if method == "get_position":
+            positions = Positions.objects.all().order_by("-updated_at")
+
+            for position in positions:
+                response["data"].append({
+                    "position": {
+                        "name": position.position_name,
+                        "id": position.id
+                    },
+                    "description": position.position_desc,
+                    "state": position.position_state,
+                    "date": position.updated_at.strftime("%d/%m/%Y %I:%M %p"),
+                    "operations": True
+
+                })
+
+            return HttpResponse(json.dumps(response), content_type="application/json")
+
+        # ----------------------------------------------------------------------------
+        # get the position filter
+        if method == "get_position_filter":
+
+            positions = Positions.objects.all()
+            for position in positions:
+                response["data"].append(
+                    {"label": position.position_name, "value": position.id}
+                )
+
+            return HttpResponse(json.dumps(response), content_type="application/json")
+
+        # -------------------------------------------
+        # get the skills
+        if method == "get_skills":
+
+            position = request.POST["position"]
+
+
+            if int(position) != 0:
+                skills = MasterSkills.objects.filter(position_id=int(position)).order_by("-updated_at")
+            else:
+                skills = MasterSkills.objects.all().order_by("-updated_at")
+
+
+
+            for skill in skills:
+                response["data"].append({
+                    "skill": {
+                        "name": skill.skill,
+                        "id": skill.id
+                    },
+                    "description": skill.description,
+                    "date": skill.updated_at.strftime("%d/%m/%Y %I:%M %p"),
+                    "operations": True
+
+                })
+
+            return HttpResponse(json.dumps(response), content_type="application/json")
+
+        # -------------------------------------------
+        # Add skills
+        if method == "add_skill":
+            position = request.POST["position_id"]
+            skill_name = request.POST["skill_name"]
+            skill_desc = request.POST["skill_description"]
+
+            exists = MasterSkills.objects.filter(skill__iexact=skill_name, position_id=int(position)).exists()
+
+            if exists:
+                response["message"] = "Skill already available for this position; Please check the table"
+
+            else:
+                if int(position) != 0:
+                    skill = MasterSkills(position_id=position,
+                                         skill=skill_name,
+                                         description=skill_desc,
+                                         )
+                    skill.save()
+                    response["message"] = "Successfully Added new skill for the position"
+                else:
+                    response["message"] = "No Positions to add Skills add a position first"
+
+
+
+            return HttpResponse(json.dumps(response), content_type="application/json")
+
+
+        # -------------------------------------------
+        # Add positions
+        if method == "add_position":
+            position_name = request.POST["position_name"]
+            position_desc = request.POST["description"]
+
+            exists = Positions.objects.filter(position_name__iexact=position_name).exists()
+
+            if exists:
+                response["message"] = "Position already exists. Please add a new one"
+            else:
+                position = Positions(position_name=position_name,
+                                     position_desc=position_desc,
+                                    )
+                position.save()
+
+                activity = Activities(position=position,
+                                      activity="Created New Position"
+                                      )
+                activity.save()
+
+                response["message"] = "Successfully added new position"
+
+            return HttpResponse(json.dumps(response), content_type="application/json")
+
+        # -------------------------------------------
+        # Update the skill details
+        if method == "update_skill":
+
+            skill_name = request.POST["skill"]
+            skill_id = request.POST["id"]
+            description = request.POST["skill_description"]
+            # position = request.POST["position_id"]
+
+
+            skill = MasterSkills.objects.get(pk=int(skill_id))
+            skill.skill = skill_name
+            skill.description = description
+            # skill.position_id = int(position)
+
+            skill.save()
+
+            response["message"] = "Successfully Updated"
+
+            return HttpResponse(json.dumps(response), content_type="application/json")
+
+
+        # -------------------------------------------
+        # Update the posiion details
+        if method == "update_position":
+
+            position_name = request.POST["position"]
+            position_id = request.POST["id"]
+            state = "Open" if "position_state" in request.POST else "Closed"
+            # print(state)
+            description = request.POST["description"]
+
+            position = Positions.objects.get(pk=int(position_id))
+            position.position_name = position_name
+            position.position_desc = description
+            position.position_state = state
+
+            position.save()
+
+            response["message"] = "Successfully Updated"
+
+            activity = Activities(position=position,
+                                  activity="Position Updated"
+                                  )
+            activity.save()
+
+            return HttpResponse(json.dumps(response), content_type="application/json")
+
+        # ------------------------------------------
+        # delete the skills
+        if method == "delete_skill":
+            skill_id = request.POST["skill_id"]
+
+            try:
+                MasterSkills.objects.filter(pk=int(skill_id)).delete()
+                response["message"] = "Successfully deleted skill"
+            except:
+                response["message"] = "Skill does not exists"
+
+            return HttpResponse(json.dumps(response), content_type="application/json")
+
+
+        # ------------------------------------------
+        # delete the positions
+        if method == "delete_position":
+            position_id = request.POST["position_id"]
+
+            try:
+                Positions.objects.filter(pk=int(position_id)).delete()
+                response["message"] = "Successfully deleted position"
+            except:
+                response["message"] = "position does not exists"
+
+            return HttpResponse(json.dumps(response), content_type="application/json")
+
+
+
+        return HttpResponse(json.dumps({}), content_type="application/json")

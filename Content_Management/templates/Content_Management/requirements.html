@@ -3,6 +3,21 @@
 
 {% block "custom_styles" %}
 	
+	<!-- DataTables CSS -->
+    <link href='{% static "vendor/datatables-plugins/dataTables.bootstrap.css" %}' rel="stylesheet">
+    <!-- DataTables  buttons CSS -->
+    <!--<link href='{% static "vendor/buttons.dataTables.min.css" %}' rel="stylesheet">-->
+    <link href='{% static "vendor/datatables/css/buttons.bootstrap.min.css" %}' rel="stylesheet">
+    <link href='{% static "vendor/datatables/css/colReorder.bootstrap.min.css" %}' rel="stylesheet">
+    
+
+    <!-- DataTables Responsive CSS -->
+    <link href='{% static "vendor/datatables-responsive/dataTables.responsive.css" %}' rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href='{% static "bootstrap-switch-master/dist/css/bootstrap3/bootstrap-switch.min.css" %}'>
+
+    <!-- Selectize -->
+    <link rel="stylesheet" type="text/css" media="all" href='{% static "selectize/dist/css/selectize.bootstrap3.css" %}'>
+
 	<link rel="stylesheet" type="text/css" href='{% static "custom_css/requirements_styles.css" %}'>
 {% endblock "custom_styles" %}
 
@@ -21,36 +36,312 @@
 
    	<div class="row">
    		<div class="col-lg-12">
-   			<ul class="nav nav-tabs" role="tablist">
-			    <li role="presentation" class="active"><a href="#position" aria-controls="home" role="tab" data-toggle="tab">Position</a></li>
-			    <li role="presentation"><a href="#skills" aria-controls="profile" role="tab" data-toggle="tab">Skills</a></li>
+   			<ul class="nav nav-tabs nav" role="tablist">
+			    <li role="presentation" class="active"><a href="#position_tab" aria-controls="position_tab" role="tab" data-toggle="tab"><strong>Position Settings</strong></a></li>
+			    <li role="presentation"><a href="#skills_tab" aria-controls="skills_tab" role="tab" data-toggle="tab"><strong>Skill Settings</strong></a></li>
 			    
 			</ul>
    		</div>
 
-   		<div class="tab-content">
-		    <div role="tabpanel" class="tab-pane fade in active" id="position">Position</div>
-		    <div role="tabpanel" class="tab-pane fade" id="skills">Skills</div>
-		  </div>
+   		<div class="col-lg-12" style="padding-top:10px;">
+	   		<div class="tab-content">
+			    <div role="tabpanel" class="tab-pane fade in active" id="position_tab">
+			  		
+			    	<!-- Adding pannel to add new positions -->
+			    	<div class="panel panel-primary">
+						<div class="panel-heading"><strong>Positions</strong></div>
+						<div class="panel-body">
+
+						<!-- Table shows the position with ddescription and updated date-->
+							<table width="100%" class="table table-hover table-striped table-bordered" id="position_table">
+
+					            <thead>
+					                <tr>
+					                    <th>Position</th>
+					                    <th>Description</th>
+					                    <th>State</th>
+					                    <th>Date</th>
+					                    {% if request.user.is_superuser %}
+					                    	<th></th>	
+					                    {% endif %}
+					                    
+					                </tr>
+					            </thead>
+					            <!--<tbody>
+					            	
+					            </tbody>-->
+					        </table>
+
+							
+						</div>
+
+						{% if request.user.is_superuser%}
+							<div class="panel-footer" style="background: #FFFFDF">
+								<form class="form" action="" method="POST" id="form-position">
+									{% csrf_token %}
+
+
+									<div class="form-group">
+
+										<div class="row">
+											<div class="col-lg-4">
+												<input class="form-control" type="text" name="position_name" id="position_name" placeholder="Position" required>
+											</div>
+											<div class="col-lg-7">
+												<input class="form-control" type="text" name="description" id="description" placeholder="Description" required>
+											</div>
+										
+											<div class="col-lg-1">
+												<input class="form-control btn btn-success" type="submit" name="submit" id="position-submit" value="Add">
+											</div>
+										</div>
+										
+									</div>
+								</form>
+							</div>
+
+
+						{% endif %}
+						
+					</div>
+
+			    </div>
+			    <div role="tabpanel" class="tab-pane fade" id="skills_tab">
+			    	<label for="position_filter" style="color:#aaa"> Position</label>
+			    	<input id="position_filter" type="text" name="position" class="form-control">
+			    	<br>
+			    	<!-- Adding pannel to add new positions -->
+			    	<div class="panel panel-primary">
+						<div class="panel-heading"><strong>Skills</strong></div>
+						<div class="panel-body">
+
+						<!-- Table shows the skills with description and updated date-->
+							<table width="100%" class="table table-hover table-striped table-bordered" id="skill_table">
+
+					            <thead>
+					                <tr>
+					                    <th>Skills</th>
+					                    <th>Description</th>
+					                    <th>Date</th>
+					                    {% if request.user.is_superuser %}
+					                    	<th></th>	
+					                    {% endif %}
+					                    
+					                </tr>
+					            </thead>
+					            <!--<tbody>
+					            	
+					            </tbody>-->
+					        </table>
+
+							
+						</div>
+
+						{% if request.user.is_superuser%}
+							<div class="panel-footer" style="background: #FFFFDF">
+								<form class="form" action="" method="POST" id="form-skill">
+									{% csrf_token %}
+
+
+									<div class="form-group">
+
+										<div class="row">
+											<div class="col-lg-4">
+												<input class="form-control" type="text" name="skill_name" id="skill_name" placeholder="Skill" required>
+											</div>
+											<div class="col-lg-7">
+												<input class="form-control" type="text" name="skill_description" id="skill_description" placeholder="Description" required>
+											</div>
+										
+											<div class="col-lg-1">
+												<input class="form-control btn btn-success" type="submit" name="submit" id="position-submit" value="Add">
+											</div>
+										</div>
+										
+									</div>
+								</form>
+							</div>
+
+
+						{% endif %}
+						
+					</div>
+			    </div>
+			  </div>
+		</div>
    	</div>	
    	<!-- /.row-->
+
+   	<!-- Position Modal -->
+   	<!-- Modal -->
+	<div id="position_modal" class="modal fade" role="dialog">
+	  <div class="modal-dialog">
+
+	    <!-- Modal content-->
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        <h4 class="modal-title">Update Details</h4>
+	      </div>
+	      <div class="modal-body">
+	        <form class="form" action="" method="POST" id="edit_position_row">
+	        	{% csrf_token %}
+
+
+	        	<input type="text" name="id" value="" style="display: none;">
+	        	<div class="form-group">
+	        		<input class="form-control" type="text" name="position" 
+	        		placeholder="Position" required>
+	        	</div>
+	        	<br>
+	        	<div class="form-group">
+	        		<input class="form-control" type="text" name="description" 
+	        		placeholder="Description" required>
+	        	</div>
+	        	<br>
+	        	<div class="form-group">
+	        		<input id="position_state" type="checkbox" name="position_state" checked>
+	        	</div>
+	        	<br>
+
+	        	<div class="form-group">
+	        		<input class="form-control btn btn-info" type="submit" name="submit" 
+	        		value="Update">
+	        	</div>
+	        </form>
+	      </div>
+	      <div class="modal-footer" align="center">
+	      	The update will rearrange the data in the database !!
+	      </div>
+	    </div>
+
+	  </div>
+	</div>
+   	<!-- Skill Modal -->
+   	<div id="skill_modal" class="modal fade" role="dialog">
+	  <div class="modal-dialog">
+
+	    <!-- Modal content-->
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        <h4 class="modal-title">Update Details</h4>
+	      </div>
+	      <div class="modal-body">
+	        <form class="form" action="" method="POST" id="edit_skill_row">
+	        	{% csrf_token %}
+
+	        	<input type="text" name="id" value="" style="display: none;">
+	        	<div class="form-group">
+	        		<input class="form-control" type="text" name="skill" 
+	        		placeholder="Skill" required>
+	        	</div>
+	        	<br>
+	        	<div class="form-group">
+	        		<input class="form-control" type="text" name="skill_description" 
+	        		placeholder="Description" required>
+	        	</div>
+	        	<br>
+	        	
+	        	<div class="form-group">
+	        		<input class="form-control btn btn-info" type="submit" name="submit" 
+	        		value="Update">
+	        	</div>
+	        </form>
+	      </div>
+	      <div class="modal-footer" align="center">
+	      	The update will rearrange the data in the database !!
+	      </div>
+	    </div>
+
+	  </div>
+	</div>
+
+   	<!-- General modal for position-->
+   	<div id="general_modal_position" class="modal fade" role="dialog">
+	  <div class="modal-dialog">
+
+	    <!-- Modal content-->
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        <h4 class="modal-title">Update Details</h4>
+	      </div>
+	      <div class="modal-body">
+	        This operation will update the database Do You want to continue?
+	      </div>
+	      <div class="modal-footer" align="center">
+	      	<a class="btn btn-primary" id="confirm_position" data-dismiss="modal">Yes</a>
+	      	<a class="btn btn-default" data-dismiss="modal">Close</a>
+	      </div>
+	    </div>
+
+	  </div>
+	</div>
+
+	<!-- General modal for skill-->
+   	<div id="general_modal_skill" class="modal fade" role="dialog">
+	  <div class="modal-dialog">
+
+	    <!-- Modal content-->
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <button type="button" class="close" data-dismiss="modal">&times;</button>
+	        <h4 class="modal-title">Update Details</h4>
+	      </div>
+	      <div class="modal-body">
+	        This operation will update the database Do You want to continue?
+	      </div>
+	      <div class="modal-footer" align="center">
+	      	<a class="btn btn-primary" id="confirm_skill" data-dismiss="modal">Yes</a>
+	      	<a class="btn btn-default" data-dismiss="modal">Close</a>
+	      </div>
+	    </div>
+
+	  </div>
+	</div>
+
+
 {% endblock %}
 
 {% block "custom_scripts" %}
+
+
+	<!-- DataTables JavaScript -->
+    <script src='{% static "vendor/datatables/js/jquery.dataTables.min.js" %}'></script>
+    <script src='{% static "vendor/datatables-plugins/dataTables.bootstrap.min.js" %}'></script>
+    
+    <script src='{% static "vendor/datatables-responsive/dataTables.responsive.js" %}'></script>
+    <script src='{% static "vendor/dataTables.buttons.min.js" %}'></script>
+    <script src='{% static "vendor/datatables/js/buttons.bootstrap.min.js" %}'></script>
+    <script src='{% static "bootstrap-switch-master/dist/js/bootstrap-switch.min.js" %}'></script>
+
+    <!-- Selectize -->
+    <script type="text/javascript" src='{% static "selectize/dist/js/standalone/selectize.js" %}'></script>
+    <script type="text/javascript" src='{% static "selectize/src/utils.js" %}'></script>
+    <script type="text/javascript" src='{% static "selectize/src/plugins/remove_button/plugin.js" %}'>
+    </script>
+    <script type="text/javascript" src='{% static "selectize/src/plugins/drag_drop/plugin.js" %}'></script>
+
 	<!-- Script for the page -->
     <script type="text/javascript" src="{% static 'custom_js/csrf-header.js' %}"></script>
 
     <script type="text/javascript">
 
+
     	BASE_URLS = {
     		Requirements : '{% url "Requirements" %}',
     	}
+    	
 
     </script>
 
     {% if request.user.is_superuser %}
-    	<script type="text/javascript" src="{% static 'custom_js/requirements.js' %}"></script>	
+    	<script type="text/javascript" src="{% static 'custom_js/requirements_super.js' %}"></script>	
+   	{% else %}
+   		<script type="text/javascript" src="{% static 'custom_js/requirements.js' %}"></script>	
     {% endif %}
+    
     
 
 

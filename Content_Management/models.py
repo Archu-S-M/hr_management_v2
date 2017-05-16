@@ -7,21 +7,11 @@ from Admin_Management.models import CustomUser
 
 # Recruiting position model
 class Positions(models.Model):
-
     position_name = models.CharField(max_length=100, null=False)
     position_desc = models.CharField(max_length=300, null=True)
+    position_state = models.CharField(max_length=10, default="Open")
     created_at    = models.DateTimeField(null=False, default=timezone.now)
     updated_at    = models.DateTimeField(null=False, default=timezone.now)
-
-
-
-# candidate skillset model
-class Skillset(models.Model):
-    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE)
-    candidate_skill = models.CharField(max_length=50, null=True)
-    position = models.ForeignKey(Positions, null=True, default=None)
-    created_at = models.DateTimeField(null=False, default=timezone.now)
-    updated_at = models.DateTimeField(null=False, default=timezone.now)
 
 
 # Interview questions model
@@ -36,6 +26,7 @@ class Questions(models.Model):
 # Candidate profile model
 class Candidate(models.Model):
     consultancy = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    position = models.ForeignKey(Positions, null=True, default=None)
     candidate_name = models.CharField(max_length=100, null=False)
     candidate_age = models.IntegerField(null=False, default=22)
     candidate_experience = models.FloatField(null=True, default=0.0)
@@ -53,6 +44,22 @@ class Candidate(models.Model):
     updated_at = models.DateTimeField(null=False, default=timezone.now)
 
 
+# Skill set added by HR
+class MasterSkills(models.Model):
+    position = models.ForeignKey(Positions, on_delete=models.CASCADE)
+    skill = models.CharField(max_length=50, null=False, default="Other Skill")
+    description = models.CharField(max_length=300, null=True)
+    created_at = models.DateTimeField(null=False, default=timezone.now)
+    updated_at = models.DateTimeField(null=False, default=timezone.now)
+
+
+# candidate skillset model
+class Skillset(models.Model):
+    candidate = models.ForeignKey(Candidate, on_delete=models.CASCADE)
+    master_skill = models.ForeignKey(MasterSkills, null=True, default=None)
+    candidate_skill = models.CharField(max_length=50, null=True)
+    created_at = models.DateTimeField(null=False, default=timezone.now)
+    updated_at = models.DateTimeField(null=False, default=timezone.now)
 
 
 # The activity table to store the activities performed by consultancy or hr

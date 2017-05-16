@@ -18,6 +18,7 @@ var SKILL_ROW_NO = 0;
 // ================================================================================
 //  Default filter to call using ajax. The filter values will change on each fields
 var Filters = {
+	position: "",
 	consultancy: "",
 	skills : "",
 	experience : "",
@@ -34,7 +35,13 @@ var filter_object_array = {};
 
 
 // Available skillset arry on first load
-var availableSkillset = ["Python", "Some other Skills", "Some other skills 2"];
+var availableSkillset = [];
+var availablePositions = [];
+
+if(availablePositions.length === 0) {
+	$("#top_message").show();
+	$("#candidate_details").hide();
+}
 
 // #####################################################################################
 /* *************************************
@@ -85,22 +92,51 @@ function resetForm( form ) {
 	video_input_initial();
 }
 
-
 // ========================================================================
-// to create filters
+// to create position filter
 
-var $consultancy_filter = $('#consultancy_filter').selectize({
+var $position_filter = $('#position_filter').selectize({
 	plugins: ['remove_button'],
-    // delimiter: ',',
     options: [
-        {value:"consultancy",label:"1"},
+        {value:"1",label:"Position"},
     ],
     valueField: 'value',
     labelField: 'label',
     searchField: 'label',
     persist: true,
     create: false,
+    maxItems: 1,
+    // on changing the selectize
+    onChange: function(value) {
+		Filters["position"] = value;
+		CANDIDATE_NEW = false;
+		$("#candidate_details").fadeOut();
+		$("#candidate_short_details_panel").fadeIn();
+		$("#collapse_can_details").collapse("show");
+		get_filterd_data();
+	}
+    
+});
 
+
+// add to object array
+filter_object_array["position"] = $position_filter;
+
+
+// ========================================================================
+// to create filters
+
+var $consultancy_filter = $('#consultancy_filter').selectize({
+	plugins: ['remove_button'],
+    options: [
+        {value:"1",label:"Consultancy"},
+    ],
+    valueField: 'value',
+    labelField: 'label',
+    searchField: 'label',
+    persist: true,
+    create: false,
+    maxItems: 1,
     // on changing the selectize
     onChange: function(value) {
 		Filters["consultancy"] = value;
@@ -221,6 +257,31 @@ function fill_filters(filter_name) {
         data: {filter: filter_name, submit: "fill_filters"},
         success: function (data) {
         	update_filters(data, filter_name);
+        	// to update the data in the candiate skills
+        	if(filter_name === "skills") {
+        		availableSkillset = [];
+        		for(var i=0;i<data[filter_name].length; i++) {
+        			availableSkillset.push(data[filter_name][i]["label"]);
+        		}
+        		initiateSkillDropdown(false);
+
+        	}
+        	else if(filter_name === "position") {
+        		availablePositions = [];
+        		for(var i=0;i<data[filter_name].length; i++) {
+        			availablePositions.push(data[filter_name][i]["label"]);
+        		}
+
+        		if(availablePositions.length === 0) {
+					$("#top_message").show();
+				}
+				else {
+					$("#top_message").hide();
+				}
+
+        		initiatePositionDropdown();
+        	}
+
         }
 	});
 }
@@ -349,9 +410,27 @@ function initiateSkillDropdown(id) {
 	$( ".skill_input" ).autocomplete({
 		minLength: 0,
     	source: availableSkillset
+    	
+    }).focus(function(){            
+    	$(this).autocomplete("search");
     });
 }
 
+// convert position input to dropdown
+function initiatePositionDropdown() {
+	$("#position").autocomplete({
+		minLength: 0,
+		source: availablePositions,
+		change: function (event, ui) {
+                if(!ui.item){
+                    $("#position").val("");
+                }
+
+        }
+	}).focus(function(){            
+    	$(this).autocomplete("search");
+    });
+}
 
 
 // function to create table skills row style dynamically
@@ -477,6 +556,7 @@ function show_full_details(data) {
 
 	// getting form details
 	var candidate_name = data["candidate_name"],
+		position = data["position"],
 		age = data["age"],
 		experience = data["experience"],
 		preferred_location = data["location"],
@@ -494,6 +574,7 @@ function show_full_details(data) {
 	$("#collapse_can_details").collapse("toggle");
 
 	// load the values in the table
+	$("#position").val(position);
 	$("#name").val(candidate_name);
 	$("#age").val(age);
 	$("#experience").val(experience);
@@ -524,7 +605,7 @@ function show_full_details(data) {
 	$("#resume_download").attr("href", resume_url);
 
 	$('#candidate_status').prop("disabled", CANDIDATE_NEW);
-	$('#delete').prop("disabled", CANDIDATE_NEW);
+	$('#delete').disabled = false;
 
 	// alert(video_url);
 	// refresh the file input with new values
@@ -730,6 +811,7 @@ function video_input_initial() {
 
 function reload_filters() {
 	var Filters = {
+		position : "",
 		consultancy: "",
 		skills : "",
 		experience : "",
@@ -743,9 +825,13 @@ function reload_filters() {
 	fill_filters("locations");
 	fill_filters("experience");
 	fill_filters("consultancy");
+	fill_filters("position");
 	// fill_dropddown("skills");
 }
 
+
+// ==================================================================
+// to get all available Master Skills
 
 // ==================================================================
 // initially show all the candidates
@@ -753,4 +839,5 @@ function reload_filters() {
 $CANDIADTE_SHORT_DETAILS = candidate_short_details();
 reload_filters();
 get_filterd_data();
+
 

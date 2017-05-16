@@ -19,7 +19,7 @@ from Admin_Management.models import CustomUser
 from Content_Management.models import Candidate
 from Content_Management.models import Skillset
 from Content_Management.models import Activities
-from Content_Management.models import Requirements
+from Content_Management.models import Positions
 
 
 '''
@@ -67,6 +67,7 @@ class ExtendCandidateProfile:
         # Get all the form field values
         # ----------------------------
         save_type = True if data["save_type"] == "true" else False
+        position_name = data["position"]
         name = data["name"]
         age = data["age"]
         experience = data["experience"]
@@ -117,8 +118,8 @@ class ExtendCandidateProfile:
                     # ---------------------------
                     if extension not in self.video_extensions:
                         response["errors"].append({"interview_video":
-                                                       "Format not supported "
-                                                       "(Current = %s Expected = .mp4)"
+                                                    "Format not supported "
+                                                    "(Current = %s Expected = .mp4)"
                                                        % extension})
                     else:
                         new_video_name = "Video-%s.%s" % (email, extension)
@@ -187,6 +188,9 @@ class ExtendCandidateProfile:
                     candidate = Candidate.objects.get(consultancy=consultancy,
                                                       candidate_email=email)
 
+                    position = Positions.objects.get(position_name=position_name)
+
+                    candidate.position = position
                     candidate.candidate_name = name
                     candidate.candidate_email = email
                     candidate.candidate_age = age
@@ -207,7 +211,6 @@ class ExtendCandidateProfile:
                         new_resume_name = candidate.candidate_resume
 
                     candidate.save()
-                    candidate_id = candidate.id
                     try:
                         Skillset.objects.filter(candidate=candidate).delete()
                         for skills in skill_set:
@@ -231,7 +234,11 @@ class ExtendCandidateProfile:
 
 
             else:
-                candidate = Candidate(candidate_name=name,
+
+                position = Positions.objects.get(position_name=position_name)
+
+                candidate = Candidate(position=position,
+                                      candidate_name=name,
                                       candidate_email=email,
                                       candidate_age=age,
                                       candidate_contact_no=no,
@@ -248,7 +255,6 @@ class ExtendCandidateProfile:
 
                 # adding skill sets in the table
                 for skills in skill_set:
-                    # print(skills)
                     skill_set_instance = Skillset(candidate=candidate,
                                                   candidate_skill=skills)
                     skill_set_instance.save()
@@ -314,6 +320,7 @@ class ExtendCandidateProfile:
 
         skill_arr = skills.values_list("candidate_skill", flat=True)
 
+        response["candidate_details"]["position"] = candidate.position.position_name
         response["candidate_details"]["candidate_name"] = candidate.candidate_name
         response["candidate_details"]["age"] = candidate.candidate_age
         response["candidate_details"]["experience"] = candidate.candidate_experience
@@ -363,25 +370,27 @@ class ExtendCandidateProfile:
             skill_array = data["skills"].split(",")
             skill_query = reduce(lambda q, value: q | Q(candidate_skill=str(value)), skill_array, Q())
 
-            # print(skill_query)
 
         experience = data["experience"]
         location = data["location"]
         consultancy_id = data["consultancy"]
-        # print(consultancy_id)
+        position_id = data["position"]
+
         if experience:
             filter_queries["candidate__candidate_experience"] = experience
         if location:
             filter_queries["candidate__preferred_location"] = location
         if consultancy_id:
             filter_queries["candidate__consultancy__id"] = consultancy_id
-
+        if position_id:
+            filter_queries["candidate__position__id"] = position_id
+        print(position_id)
         if not request.user.is_superuser:
             candidate = Skillset.objects.filter(
                 candidate__consultancy=request.user).filter(
                 skill_query).filter(
                 **filter_queries).select_related()
-            # print(candidate)
+
         else:
             candidate = Skillset.objects.filter(
                 skill_query).filter(
@@ -415,7 +424,7 @@ class ExtendCandidateProfile:
             candidate_temp_array[id]["expected_ctc"] = expected_ctc
             candidate_temp_array[id]["notice"] = notice
 
-        # print(candidate_temp_array)
+
         # arrange the data in response format
         for id in candidate_temp_array:
             temp = {"candidate": {"name": candidate_temp_array[id]["name"],
@@ -430,11 +439,11 @@ class ExtendCandidateProfile:
 
             response["candidate_details"].append(temp)
 
-        # print(response)
+
 
         response["candidate_details"] = self.custom_ordering(skill_array,
                                                              response["candidate_details"])
-        # print(response)
+
 
         # -----------------------
         # return the responses
@@ -455,6 +464,7 @@ class ExtendCandidateProfile:
         # initialize the response
         # -----------------------
         response = {
+            "position": [],
             "consultancy": [],
             "skills": [],
             "locations": [],
@@ -468,13 +478,22 @@ class ExtendCandidateProfile:
             filter_name = data["filter"]
 
             # ----------------------------------------------------------
+            # to get the position
+            if filter_name == "position":
+                positions = Positions.objects.all().order_by("position_name")
+
+                for position in positions:
+                    response[filter_name].append({"label": position.position_name,
+                                                  "value": position.id})
+
+
+            # ----------------------------------------------------------
             # to get the filters for the consultancy
 
             if filter_name == "consultancy":
                 '''yet to code'''
                 if request.user.is_superuser:
                     consultancy = CustomUser.objects.all()
-                    # print(consultancy)
                     for con_objects in consultancy:
                         consultancy_name = con_objects.consultancy_name
                         consultancy_pk = con_objects.pk
@@ -484,7 +503,7 @@ class ExtendCandidateProfile:
 
                         response[filter_name].append({"label": consultancy_name,
                                                       "value": consultancy_pk})
-                        # print(response)
+
                 else:
                     consultancy = CustomUser.objects.get(user=request.user)
                     consultancy_name = consultancy.consultancy_name

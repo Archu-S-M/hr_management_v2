@@ -1,4 +1,19 @@
 {% extends "Content_Management/theme.html" %}
+{% load staticfiles %}
+
+{% block "custom_styles" %}
+	<!-- Selectize -->
+    <link rel="stylesheet" type="text/css" media="all" href='{% static "selectize/dist/css/selectize.bootstrap3.css" %}'>
+
+    {# bootstrap file input #}
+    <link href='{% static "bootstrap-fileinput/css/fileinput.min.css" %}' media="all" rel="stylesheet" type="text/css" />
+
+    {# boosstrap animate #}
+    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap_notify/animate.css' %}">
+
+{% endblock "custom_styles" %}
+
+
 
 {% block "body_contents" %}
     <div class="row">
@@ -11,4 +26,118 @@
         <!-- /.col-lg-12 -->
     </div>
     <!-- /.row -->
+    {% if request.user.is_superuser %}
+	    <div class="row">
+	    	<div class="col-lg-12">
+	    		<label for="position_filter">Position</label>
+	    		<input class="form-control" type="text" name="position" id="position_filter">
+	    	</div>
+	    	
+	    </div>
+	    <br>
+
+	    <div class="row">
+	    	
+	    	<div class="col-lg-10">
+	    		<form class="form" action="" method="POST" id="questionnaire" 
+	    		enctype="multipart/form-data">
+
+	    			
+	    				{% csrf_token %}
+	    			
+
+	    			<div class="form-group">
+	    				<input type="file" name="questions" id="question_file">
+	    			</div>
+	    			
+	    		</form>
+	    	</div>
+	    	<div class="col-lg-2">
+	    		<a class="btn btn-warning disabled" id="question_download" href="/media/#" download>
+	    			Download <i class="fa fa-download" aria-hidden="true"></i>
+	    		</a>
+	    	</div>
+		    
+	    	
+	    </div>
+
+	{% else %}
+		<div class="row">
+	    	<div class="col-lg-10">
+	    		<label for="position_filter">Position</label>
+	    		<input class="form-control" type="text" name="position" id="position_filter">
+	    	</div>
+	    	<div class="col-lg-2">
+	    		<label for="question_download" style="color:transparent;">______</label>
+	    		<a class="btn btn-warning disabled" id="question_download" href="/media/#" download>
+	    			Download <i class="fa fa-download" aria-hidden="true"></i>
+	    		</a>
+	    	</div>
+	    	
+	    </div>
+	    <br>
+
+    
+   		<div class="row">
+	    	<div class="col-lg-12">
+	    		<div class="panel panel-primary">
+	    			<div class="panel-heading"><strong>Questions</strong></div>
+						<div class="panel-body">
+				    		 <object id="question_body" data="" type="application/pdf" width="100%" height="640px"> 
+							  <p>No Data Available 
+							  </p>  
+							 </object>
+						</div>
+
+				</div>
+	    	</div>
+	    </div>
+	    <br>
+	    <br>
+   	{% endif %}
+    
+
+
+
+
 {% endblock %}
+
+{% block "custom_scripts" %}
+	
+	{# file input #}
+	<script src='{% static "bootstrap-fileinput/js/plugins/sortable.min.js" %}'></script>
+    <script src='{% static "bootstrap-fileinput/js/fileinput.min.js" %}'></script>
+	
+	<!-- Selectize -->
+    <script type="text/javascript" src='{% static "selectize/dist/js/standalone/selectize.js" %}'></script>
+    <script type="text/javascript" src='{% static "selectize/src/utils.js" %}'></script>
+    <script type="text/javascript" src='{% static "selectize/src/plugins/remove_button/plugin.js" %}'>
+    </script>
+    <script type="text/javascript" src='{% static "selectize/src/plugins/drag_drop/plugin.js" %}'></script>
+
+    {# bootstrap notify #}
+    <script type="text/javascript" src="{% static 'bootstrap_notify/bootstrap-notify.min.js' %}"></script>
+    {# csrf header #}
+    <script type="text/javascript" src="{% static 'custom_js/csrf-header.js' %}"></script>
+
+    <script type="text/javascript" src="{% static 'custom_js/jquery.media.js' %}"></script>
+    <script type="text/javascript" src="{% static 'custom_js/jquery.metadata.js' %}"></script>
+
+	<script type="text/javascript">
+
+
+    	BASE_URLS = {
+    		Questionnaire : '{% url "Questionnaire" %}',
+    	}
+    	
+
+    </script>
+
+    {% if request.user.is_superuser %}
+    	<script type="text/javascript" src="{% static 'custom_js/questionnaire_super.js' %}"></script>	
+   	{% else %}
+   		<script type="text/javascript" src="{% static 'custom_js/questionnaire.js' %}"></script>	
+    {% endif %}
+
+
+{% endblock "custom_scripts" %}
