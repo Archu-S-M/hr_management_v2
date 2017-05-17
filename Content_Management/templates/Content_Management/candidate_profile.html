@@ -45,13 +45,17 @@
     <!-- /.row -->
 
     <div class="row">
-        <div class="col-lg-6">
+        <div class="col-lg-4">
             <label for="consultancy_filter">Consultancy:</label>
             <input id="consultancy_filter">
         </div>
-        <div class="col-lg-4">
+        <div class="col-lg-3">
             <label for="position_filter">Position:</label>
             <input id="position_filter">
+        </div>
+        <div class="col-lg-3">
+            <label for="status_filter">Status:</label>
+            <input id="status_filter">
         </div>
         <!-- /.col-lg-8 -->
         <div class="col-lg-2">
@@ -94,6 +98,7 @@
                                             <th>Consultancy</th>
                                             <th>Experience</th>
                                             <th>Skill(s)</th>
+                                            <th>Current CTC</th>
                                             <th>Expected CTC</th>
                                             <th>Notice Period</th>
                                         </tr>
@@ -142,6 +147,20 @@
                         <div id="position_error" class="alert alert-danger" style="display:none;"></div>
                         <div id="position_info" class="alert alert-warning" style="display:none;"></div>
                     </div>
+                    {% if request.user.is_superuser %}
+                        <div class="form-group">
+                            <label for="status"> Candidate Status</label>
+                            <select class="selectpicker form-control" id="status" name="status">
+                                <option value="New">New</option>
+                                <option value="Hold">Hold</option>
+                                <option value="Tellephonic">Tellephonic</option>
+                                <option value="Face to Face">Face to Face</option>
+                                <option value="Shortlisted">Shortlisted</option>
+                                <option value="Selected">Selected</option>
+                                <option value="Rejeceted">Rejeceted</option>
+                            </select>
+                        </div>
+                    {% endif %}
 	            	<div class="form-group">
                         <label for="name"> Candidate Name</label>
 	            		<input id="name" class="form-control" type="text" name="name" required>
@@ -291,34 +310,66 @@
                     </div>
                 </div>
                 <hr>    
+
+                
+                    
+                
                 <!-- /.row -->
                 <div class="row">
-                    <div class="col-lg-4">
-                        <div class="form-group">
-                            <input id="add" class="form-control btn btn-primary" type="submit" name="submit" value="Create/Update">
+                    {% if request.user.is_superuser %}
+                        <div class="col-lg-6">
+                            <div class="form-group">
+                                <input id="add" class="form-control btn btn-primary" type="submit" name="submit" value="Create/Update">
+                            </div>
                         </div>
-                    </div>
-                    <!--/.col-lg-4-->
-                    <div class="col-lg-4">
-                        <div class="form-group">
-                            <input id="candidate_status" class="form-control btn btn-warning" type="submit" name="submit" value="Acivate/Deactivate">
+                        
+                        <!--/.col-lg-4-->
+                        <div class="col-lg-6">
+                            <div class="form-group">
+                                <input id="delete" class="form-control btn btn-danger" type="submit" name="submit" value="Delete">
+                            </div>
                         </div>
-                    </div>
-                    <!--/.col-lg-4-->
-                    <div class="col-lg-4">
-                        <div class="form-group">
-                            <input id="delete" class="form-control btn btn-danger" type="submit" name="submit" value="Delete">
+                        <!--/.col-lg-4-->
+                    {% else %}
+                        <div class="col-lg-12">
+                            <div class="form-group">
+                                <input id="add" class="form-control btn btn-primary" type="submit" name="submit" value="Create/Update">
+                            </div>
                         </div>
-                    </div>
-                    <!--/.col-lg-4-->
+                    {% endif %}
                 </div>
                 <!-- /.row -->
+                
+
+
             </form>
         </div>
         
     </div>
     <!-- /.row -->
 
+    <div id="delete_msg" class="modal fade" role="dialog">
+      <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4 class="modal-title">Warnig Message</h4>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-danger">
+                This operation will update the database Do You want to continue?
+            </div>
+          </div>
+          <div class="modal-footer" align="center">
+            <a class="btn btn-primary" id="confirm_delete" data-dismiss="modal">Yes</a>
+            <a class="btn btn-default" data-dismiss="modal">Close</a>
+          </div>
+        </div>
+
+      </div>
+    </div>
 
        
 
@@ -407,6 +458,17 @@
             });
             
         });
+
+        //{% if request.user.is_superuser %}
+        // to delete the candidate
+        // only for super user
+        // =================================================
+        
+        
+
+
+        // {% endif %}
+        
 
 
 

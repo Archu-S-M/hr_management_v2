@@ -39,7 +39,7 @@ class Candidate(models.Model):
     candidate_interview = models.CharField(max_length=100, null=True)
     candidate_contact_no = models.CharField(max_length=15, null=False)
     candidate_interview_time = models.DateTimeField(null=True, default=timezone.now)
-    candidate_status = models.CharField(max_length=10, null=True, default="VALID")
+    candidate_status = models.CharField(max_length=50, null=True, default="New")
     created_at = models.DateTimeField(null=False, default=timezone.now)
     updated_at = models.DateTimeField(null=False, default=timezone.now)
 

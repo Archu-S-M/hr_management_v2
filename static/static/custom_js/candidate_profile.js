@@ -18,6 +18,7 @@ var SKILL_ROW_NO = 0;
 // ================================================================================
 //  Default filter to call using ajax. The filter values will change on each fields
 var Filters = {
+	status: "",
 	position: "",
 	consultancy: "",
 	skills : "",
@@ -37,6 +38,16 @@ var filter_object_array = {};
 // Available skillset arry on first load
 var availableSkillset = [];
 var availablePositions = [];
+var availableStatus = [
+	{label: "New", value: "New"},
+	{label: "Hold", value: "Hold"},
+	{label: "Tellephonic", value: "Tellephonic"},
+	{label: "Face to Face", value: "Face to Face"},
+	{label: "Shortlisted", value: "Shortlisted"},
+	{label: "Selected", value: "Selected"},
+	{label: "Rejeceted", value: "Rejeceted"},
+];
+
 
 if(availablePositions.length === 0) {
 	$("#top_message").show();
@@ -91,6 +102,36 @@ function resetForm( form ) {
 	resume_input_initial();
 	video_input_initial();
 }
+
+
+
+// ========================================================================
+// to create position filter
+
+var $status_filter = $('#status_filter').selectize({
+    options: availableStatus,
+    valueField: 'value',
+    labelField: 'label',
+    searchField: 'label',
+    persist: true,
+    create: false,
+    maxItems: 1,
+    // on changing the selectize
+    onChange: function(value) {
+		Filters["status"] = value;
+		CANDIDATE_NEW = false;
+		$("#candidate_details").fadeOut();
+		$("#candidate_short_details_panel").fadeIn();
+		$("#collapse_can_details").collapse("show");
+		get_filterd_data();
+	}
+    
+});
+
+
+// add to object array
+filter_object_array["status"] = $status_filter;
+
 
 // ========================================================================
 // to create position filter
@@ -351,6 +392,7 @@ function candidate_short_details () {
         	{data: "consultancy"},
         	{data: "experience"},
         	{data: "skills"},
+        	{data: "current_ctc"},
         	{data: "expected_ctc"},
         	{data: "notice"},
         ]
@@ -557,6 +599,7 @@ function show_full_details(data) {
 	// getting form details
 	var candidate_name = data["candidate_name"],
 		position = data["position"],
+		status = data["status"],
 		age = data["age"],
 		experience = data["experience"],
 		preferred_location = data["location"],
@@ -575,6 +618,7 @@ function show_full_details(data) {
 
 	// load the values in the table
 	$("#position").val(position);
+	$("#status").val(status);
 	$("#name").val(candidate_name);
 	$("#age").val(age);
 	$("#experience").val(experience);
@@ -688,14 +732,22 @@ function post_response(data) {
 
 	var errors = data.errors,
 		info   = data.info,	
-		message = data.message;
+		message = data.message,
+		method = data.method;
 
 	// alert(data['message']);
+	if(method === "Delete") {
+		$("#candidate_details").fadeOut();
+		$("#candidate_short_details_panel").fadeIn();
+		$("#collapse_can_details").collapse("show");
+	}
 
 	if(errors.length) {
 
+
 		$.each(errors, function(key, value) {
 			alert(value);
+
 		});
 	}
 

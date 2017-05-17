@@ -274,6 +274,7 @@ class CandidateProfile(LoginRequiredMixin, View):
             "message": [],
             "video_url": "#",
             "resume_url": "#",
+            "method": "Create/Update"
         }
 
         # print(request.POST)
@@ -291,9 +292,22 @@ class CandidateProfile(LoginRequiredMixin, View):
             response = ExtendCandidateProfile().validate_create_or_update(request, data)
             return HttpResponse(json.dumps(response), content_type="application/json")
 
-        elif post_method == "Activate/Deactivate":
+        elif post_method == "Delete":
 
-            '''Yet to code'''
+            candidate_id = request.POST["email"]
+            if not request.user.is_superuser:
+                response["errors"] = "You are not authorized to do this operation"
+                return HttpResponse(json.dumps(response), content_type="application/json")
+            else:
+                try:
+                    candidate = Candidate.objects.get(candidate_email=candidate_id).delete()
+                    response["message"] = {"success","Successfully Deleted"}
+                    response["method"] = "Delete"
+                except:
+                    response["errors"] = "Unable to delete this candidate"
+
+                return HttpResponse(json.dumps(response), content_type="application/json")
+
 
         elif post_method == "get_filtered_data":
             response = ExtendCandidateProfile().get_filtered_data(request, data)

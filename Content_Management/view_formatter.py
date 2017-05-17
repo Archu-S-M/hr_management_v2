@@ -79,6 +79,8 @@ class ExtendCandidateProfile:
         expected_ctc = data["expected_ctc"]
         preferred_location = data["location"]
         notice_period = data["notice_period"]
+        if  request.user.is_superuser:
+            status = data["status"]
 
         # initialize file values empty
         # --------------------------------
@@ -180,6 +182,7 @@ class ExtendCandidateProfile:
 
         if not response["errors"]:
             user_id = request.user.id
+
             consultancy = CustomUser.objects.get(pk=user_id)
             # if the save type is true the user is a new user
             # print(save_type)
@@ -190,6 +193,9 @@ class ExtendCandidateProfile:
 
                     position = Positions.objects.get(position_name=position_name)
 
+                    if request.user.is_superuser:
+                        candidate.candidate_status = status
+                        # print(status)
                     candidate.position = position
                     candidate.candidate_name = name
                     candidate.candidate_email = email
@@ -251,6 +257,11 @@ class ExtendCandidateProfile:
                                       candidate_interview=new_video_name,
                                       candidate_resume=new_resume_name,
                                       consultancy=consultancy)
+
+                if request.user.is_superuser:
+                    candidate.candidate_status = status
+
+
                 candidate.save()
 
                 # adding skill sets in the table
@@ -295,6 +306,8 @@ class ExtendCandidateProfile:
 
         response = {
             "candidate_details": {
+                "position":"",
+                "status": "",
                 "candidate_name": "",
                 "age": "",
                 "experience": "",
@@ -320,6 +333,8 @@ class ExtendCandidateProfile:
 
         skill_arr = skills.values_list("candidate_skill", flat=True)
 
+        if request.user.is_superuser:
+            response["candidate_details"]["status"] = candidate.candidate_status
         response["candidate_details"]["position"] = candidate.position.position_name
         response["candidate_details"]["candidate_name"] = candidate.candidate_name
         response["candidate_details"]["age"] = candidate.candidate_age
@@ -375,6 +390,7 @@ class ExtendCandidateProfile:
         location = data["location"]
         consultancy_id = data["consultancy"]
         position_id = data["position"]
+        status = data["status"]
 
         if experience:
             filter_queries["candidate__candidate_experience"] = experience
@@ -384,7 +400,9 @@ class ExtendCandidateProfile:
             filter_queries["candidate__consultancy__id"] = consultancy_id
         if position_id:
             filter_queries["candidate__position__id"] = position_id
-        print(position_id)
+        if status:
+            filter_queries["candidate__candidate_status"] = status
+
         if not request.user.is_superuser:
             candidate = Skillset.objects.filter(
                 candidate__consultancy=request.user).filter(
@@ -408,6 +426,7 @@ class ExtendCandidateProfile:
             skill = can.candidate_skill
             experience = can.candidate.candidate_experience
             id = can.candidate.pk
+            current_ctc = can.candidate.current_ctc
             expected_ctc = can.candidate.expected_ctc
             notice = can.candidate.notice_period
 
@@ -419,8 +438,9 @@ class ExtendCandidateProfile:
             candidate_temp_array[id]["consultancy"] = consultancy_name
             candidate_temp_array[id]["name"] = name
             candidate_temp_array[id]["skills"] += (skill if not candidate_temp_array[id]["skills"]
-                                                   else ",%s" % skill)
+                                                   else ", %s" % skill)
             candidate_temp_array[id]["experience"] = experience
+            candidate_temp_array[id]["current_ctc"] = current_ctc
             candidate_temp_array[id]["expected_ctc"] = expected_ctc
             candidate_temp_array[id]["notice"] = notice
 
@@ -432,6 +452,7 @@ class ExtendCandidateProfile:
                                   },
                     "experience": candidate_temp_array[id]["experience"],
                     "skills": candidate_temp_array[id]["skills"],
+                    "current_ctc": candidate_temp_array[id]["current_ctc"],
                     "expected_ctc": candidate_temp_array[id]["expected_ctc"],
                     "notice": candidate_temp_array[id]["notice"],
                     "consultancy": candidate_temp_array[id]["consultancy"]
