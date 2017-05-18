@@ -85,7 +85,7 @@ class ExtendCandidateProfile:
 
         # initialize file values empty
         # --------------------------------
-        interview_video = candidate_resume = ""
+        interview_video = candidate_resume = resume_name = video_name = False
 
         # check the interview time in valid date format
         # -----------------------------------------------
@@ -100,65 +100,82 @@ class ExtendCandidateProfile:
                                                    self.post_dt_format2)
             except:
 
-                response["errors"].append({"interview_time": "Invalid Format"})
+                response["errors"].append("Interview time in an invalid format")
 
         # get the uploaded files
         # -----------------------------
         try:
             if request.FILES:
-                candidate_resume = request.FILES['resume']
-                interview_video = request.FILES['interview_video']
+                if "resume" in request.FILES:
+                    candidate_resume = request.FILES['resume']
+                else:
+                    candidate_resume = None
+                if "interview_video" in request.FILES:
+                    interview_video = request.FILES['interview_video']
+                else:
+                    interview_video = None
+
 
                 # change the file names before move into the media directory
                 # The directory will contains the file names with email id as the postscript
                 # ----------------------------------------------------------------------
-                video_name = interview_video.name
-                if video_name and video_name != '#':
-                    extension = video_name.split(".")[-1]
-                    new_video_name = ""
+                if interview_video:
+                    video_name = interview_video.name
 
-                    # check for valid extension [VIDEO]
-                    # ---------------------------
-                    if extension not in self.video_extensions:
-                        response["errors"].append({"interview_video":
-                                                    "Format not supported "
-                                                    "(Current = %s Expected = .mp4)"
-                                                       % extension})
+                    if video_name and video_name != '#':
+                        extension = video_name.split(".")[-1]
+                        new_video_name = ""
+
+                        # check for valid extension [VIDEO/AUDIO]
+                        # ---------------------------
+                        if extension not in self.video_extensions:
+                            response["errors"].append("Video/Audio Format not supported "
+                                                    "(Current = %s Expected = .mp4/.mp3/.wav/.ogg)"
+                                                    % extension)
+                        else:
+                            date_time = datetime.today().strftime("%d_%m_%Y_%H_%M_%S")
+                            new_video_name = "Interview-%s_%s.%s" % (email, date_time, extension)
+
+
+                        # check the video in a valid size (50 MB)
+                        # ------------------------------------------
+                        if interview_video.size > 52428800:
+                            response["errors"].append("Video/Audio Size exceed (max-size 50MB)")
+
                     else:
-                        new_video_name = "Video-%s.%s" % (email, extension)
-
-                    # print(interview_video.size)
-                    # check the video in a valid size (50 MB)
-                    # ------------------------------------------
-                    if interview_video.size > 52428800:
-                        response["errors"].append({"interview_video": "Size exceed (max-size 50MB)"})
+                        response["info"].append("Video/Audio is not Uploaded")
 
                 else:
-                    response["info"].append({"general": "Video or Resume is not Uploaded"})
+                    response["info"].append("Video/Audio is not Uploaded")
 
-                # find the resume name and extension
-                # ----------------------------------
-                resume_name = candidate_resume.name
 
-                if resume_name and resume_name != "#":
-                    extension = resume_name.split(".")[-1]
-                    new_resume_name = ""
+                if candidate_resume:
+                    # find the resume name and extension
+                    # ----------------------------------
+                    resume_name = candidate_resume.name
 
-                    # check for  valid extension [RESUME]
-                    # -------------------------------
-                    if extension not in self.resume_extensions:
-                        response["errors"].append({"resume":
-                                                       "Format not supported (Expected .pdf/.doc)"})
+                    if resume_name and resume_name != "#":
+                        extension = resume_name.split(".")[-1]
+                        new_resume_name = ""
+
+                        # check for  valid extension [RESUME]
+                        # -------------------------------
+                        if extension not in self.resume_extensions:
+                            response["errors"].append("Resume format not supported (Expected .pdf/.doc/.docx)")
+                        else:
+                            date_time = datetime.today().strftime("%d_%m_%Y_%H_%M_%S")
+                            new_resume_name = "Resume-%s_%s.%s" % (email, date_time, extension)
+
+                        # check the resume in a valid size (1 MB)
+                        # -----------------------------------------
+                        if candidate_resume.size > 1048576:
+                            response["errors"].append("Resume Size exceed (max-size 1MB)")
+
                     else:
-                        new_resume_name = "Resume-%s.%s" % (email, extension)
-
-                    # check the resume in a valid size (1 MB)
-                    # -----------------------------------------
-                    if candidate_resume.size > 1048576:
-                        response["errors"].append({"resume": "Size exceed (max-size 1MB)"})
-
+                        response["info"].append("Resume is not Uploaded")
                 else:
-                    response["info"].append({"general": "Video or Resume is not Uploaded"})
+                    response["info"].append("Resume is not Uploaded")
+
 
                 # move the files to the media directory only if no errors
                 # --------------------------------------------------------
@@ -170,12 +187,15 @@ class ExtendCandidateProfile:
 
                         video = fs.save(new_video_name, interview_video)
 
+
                     if resume_name and resume_name != "#":
                         if os.path.isfile(os.path.join(settings.MEDIA_ROOT, new_resume_name)):
                             os.remove(os.path.join(settings.MEDIA_ROOT, new_resume_name))
                         resume = fs.save(new_resume_name, candidate_resume)
-        except:
-            response["info"].append({"general": "Video or Resume is not Uploaded"})
+            else:
+                response["info"].append("No files uploaded")
+        except Exception as e:
+            response["info"].append("No files uploaded %s" % str(e))
 
         # ================================================================================
         # save the values to the database if no errors while processing form data
@@ -235,6 +255,7 @@ class ExtendCandidateProfile:
                     activities.save()
 
                 except:
+
                     if request.user.is_superuser:
                         candidate = Candidate.objects.get(candidate_email=email)
                         candidate.candidate_status = status
@@ -288,15 +309,16 @@ class ExtendCandidateProfile:
         # render and give the new values to the posted page
 
         # ================================================================================
-        if not response["errors"] and not response["info"]:
-            response["errors"] = []
-            response["info"] = []
+        if not response["errors"]:
+            # response["errors"] = []
+            # response["info"] = []
             response["video_url"] = '/media/%s' % new_video_name
             response["resume_url"] = '/media/%s' % new_resume_name
             if not response["message"]:
                 response["message"] = {"success": "Successfully Added Information"}
 
         # return the response object with status
+        # print(response)
         return response
 
     # [FUNCTION generate the full details of the candidate]
@@ -374,6 +396,15 @@ class ExtendCandidateProfile:
         :return: response dictionary
         '''
 
+        # ---------------------------------
+        notice_dict = {
+            "IMMEDIATE" : "Immediate",
+            "2WEEK": "2 Weeks",
+            "1MONTH": "1 Month",
+            "2MONTHS": "2 Months",
+            "MORE": "More"
+        }
+
         # initialize a response dictionary
         # ---------------------------------
         response = {
@@ -447,10 +478,10 @@ class ExtendCandidateProfile:
             candidate_temp_array[id]["name"] = name
             candidate_temp_array[id]["skills"] += (skill if not candidate_temp_array[id]["skills"]
                                                    else ", %s" % skill)
-            candidate_temp_array[id]["experience"] = experience
-            candidate_temp_array[id]["current_ctc"] = current_ctc
-            candidate_temp_array[id]["expected_ctc"] = expected_ctc
-            candidate_temp_array[id]["notice"] = notice
+            candidate_temp_array[id]["experience"] = "%s Year(s)" % str(experience)
+            candidate_temp_array[id]["current_ctc"] = "%s Lakhs/Anum." % str(current_ctc)
+            candidate_temp_array[id]["expected_ctc"] = "%s Lakhs/Anum." % str(expected_ctc)
+            candidate_temp_array[id]["notice"] = notice_dict[notice]
             candidate_temp_array[id]["status"] = candidate_status
 
 

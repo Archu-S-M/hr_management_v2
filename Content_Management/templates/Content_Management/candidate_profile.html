@@ -27,6 +27,9 @@
     {# bootstrap file input #}
     <link href='{% static "bootstrap-fileinput/css/fileinput.min.css" %}' media="all" rel="stylesheet" type="text/css" />
 
+    {# boosstrap animate #}
+    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap_notify/animate.css' %}">
+
     <link rel="stylesheet" type="text/css" href='{% static "jquery-ui-1.12.1/jquery-ui.css" %}'>
 {% endblock %}
 
@@ -286,15 +289,15 @@
                     <!-- /.row -->
                     
                     
-                    <div class="form-group embed-responsive embed-responsive-16by9">
-                        <video class="embed-responsive-item" id="interview_video_play" controls autoplay loop>
+                    <!--<div class="form-group embed-responsive embed-responsive-16by9">
+                        <video style="display:none;"class="embed-responsive-item" id="interview_video_play" controls autoplay loop>
                             <source src='#' type="video/mp4">
                             <p class="alert-warning">
                             Your browser doesnot support videos! 
                             Use browsers which supports html5 video rendering
                             </p>
                         </video>
-                    </div>
+                    </div>-->
                         
 	            	
             	</div>
@@ -420,6 +423,10 @@
     <script type="text/javascript" src='{% static "bootstrap_extended/bootstrap-datetimepicker.min.js" %}'></script>
 
     <script type="text/javascript" src='{% static "jquery-ui-1.12.1/jquery-ui.js" %}'></script>
+
+
+    {# bootstrap notify #}
+    <script type="text/javascript" src="{% static 'bootstrap_notify/bootstrap-notify.min.js' %}"></script>
 
     <script type="text/javascript" src="{% static 'custom_js/csrf-header.js' %}"></script>
     <script type="text/javascript" src="{% static 'custom_js/candidate_profile.js' %}">

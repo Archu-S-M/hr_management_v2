@@ -380,14 +380,7 @@ function candidate_short_details () {
         responsive: true,
         order: [],
         colReorder: true,
-        // dom: 'Bfrtip',
-        /*{label: "New", value: "New"},
-	{label: "Hold", value: "Hold"},
-	{label: "Tellephonic", value: "Tellephonic"},
-	{label: "Face to Face", value: "Face to Face"},
-	{label: "Shortlisted", value: "Shortlisted"},
-	{label: "Selected", value: "Selected"},
-	{label: "Rejeceted", value: "Rejeceted"},*/
+        
         columns:[
         	{
         		data: "candidate.name",
@@ -416,7 +409,7 @@ function candidate_short_details () {
         				case "Rejeceted": label = "label-danger";break;
         			}
 
-        			return '<div class="label '+label+'">'+data+'</div>';
+        			return '<div class="label '+label+'" style="display:inline-block;width: 75px !important;">'+data+'</div>';
 
         		}
         	}
@@ -665,34 +658,22 @@ function show_full_details(data) {
 		}
 	}
 
-	var video = document.getElementById('interview_video_play');
-	var sources = video.getElementsByTagName('source');
- 	sources[0].src = video_url;
-	video.load();
+	// var video = document.getElementById('interview_video_play');
+	// var sources = video.getElementsByTagName('source');
+ // 	sources[0].src = video_url;
+	// video.load();
 
 	$("#interview_video_download").attr("href", video_url);
 	$("#resume_download").attr("href", resume_url);
 
-	$('#candidate_status').prop("disabled", CANDIDATE_NEW);
-	$('#delete').disabled = false;
+	$('#delete').prop("disabled", CANDIDATE_NEW);
+	// $('#delete').disabled = false;
 
 	// alert(video_url);
 	// refresh the file input with new values
 	// =================================================
-	if(resume_url !== "/media/#") {
-		$('#resume').fileinput('refresh', {
-			maxFileSize: 1048576,
-			showUpload: false, 
-        	overwriteInitial : true,
-			initialPreviewAsData: true, 
-	        initialPreviewFileType: 'pdf', 
-	        initialPreview: [
-	            resume_url,
-	        ],
-	        initialPreviewConfig: [
-	            {caption:"Resume", showZoom: true}
-	        ]
-		});
+	if(resume_url !== "/media/#" && resume_url !== "#") {
+		resume_input_withfile(resume_url);
 	}
 
 	else {
@@ -700,16 +681,8 @@ function show_full_details(data) {
 	}
 
 	// -------------------------------------------------
-	if(video_url !== "/media/#") {
-		$("#interview_video").fileinput('refresh',{
-			maxFileSize: 52428800,
-			showUpload: false, 
-        	overwriteInitial : true,
-        	showPreview: false,
-			initialPreview: [
-	            video_url,
-	        ],
-		});
+	if(video_url !== "/media/#" && video_url !== "#") {
+		video_input_withfile(video_url);
 	}
 	else {
 		video_input_initial();
@@ -742,16 +715,18 @@ function post_response(data) {
 	// reload with new posted video, resume and set download link
 	// alert(JSON.stringify(data));
 	if((data["video_url"] != "/media/#") && (data["video_url"] != "#")){
-		var video = document.getElementById('interview_video_play');
-		var sources = video.getElementsByTagName('source');
-	    sources[0].src = data["video_url"];
-	    video.load();
+		// var video = document.getElementById('interview_video_play');
+		// var sources = video.getElementsByTagName('source');
+	 //    sources[0].src = data["video_url"];
+	 //    video.load();
+		   video_input_withfile(data["video_url"]);
 
 		$("#interview_video_download").attr("href", data["video_url"]);
 	}
 
 	if((data["resume_url"] != "/media/#") && (data["resume_url"] != "#")){
 
+		resume_input_withfile(data["resume_url"]);
 		$("#resume_download").attr("href", data["resume_url"]);
 	}
 
@@ -762,6 +737,7 @@ function post_response(data) {
 
 	// alert(data['message']);
 	if(method === "Delete") {
+		showNotifications("Successfully Deleted", "success");
 		$("#candidate_details").fadeOut();
 		$("#candidate_short_details_panel").fadeIn();
 		$("#collapse_can_details").collapse("show");
@@ -769,10 +745,8 @@ function post_response(data) {
 
 	if(errors.length) {
 
-
 		$.each(errors, function(key, value) {
-			alert(value);
-
+			showNotifications(value, "danger");
 		});
 	}
 
@@ -781,7 +755,8 @@ function post_response(data) {
 		// after response from server about the new candidite reload the filters
 		reload_filters();
 		$.each(info, function(key, value) {
-			alert(value);
+			showNotifications(value, "info");
+
 		});
 	}
 
@@ -793,24 +768,16 @@ function post_response(data) {
 		$.each(message, function(key, value) {
 			// alert(JSON.stringify(key));
 			if(key === "success") {
+				var msg = "<strong>Success!</strong>"+value;
+				showNotifications(msg, "success");
 				reload_filters();
 				get_filterd_data();
-				var msg = "<strong>Success!</strong>"+value;
-				$("#general_message").removeClass("alert-danger");
-				$("#general_message").removeClass("alert-info");
-				$("#general_message").addClass("alert-success");
-				$("#general_msg_body").html(msg);
-				$('#general_message').show();
-				$('#general_message').fadeOut(5000);
+				
+				
 			}
 			else if(key === "error") {
 				var msg = "<strong>Error!</strong>"+value;
-				$("#general_message").removeClass("alert-success");
-				$("#general_message").removeClass("alert-info");
-				$("#general_message").addClass("alert-danger");
-				$("#general_msg_body").html(msg);
-				$('#general_message').show();
-				$('#general_message').fadeOut(10000);
+				showNotifications(msg, "danger");
 			}
 		});
 	}
@@ -819,10 +786,23 @@ function post_response(data) {
 }
 
 
-// ==================================================================================
-// functionn to show alerts
+// =======================================================================
+// function to show nootifications
 
-
+function  showNotifications(msg, type) {
+	$.notify({
+	// options
+	message: msg
+	},{
+		// settings
+		type: type,
+		delay: 2000,
+		mouse_over: "pause",
+		placement:{from: "top",
+					align: "left"}
+		
+	});
+}
 
 
 
@@ -856,32 +836,79 @@ $("#candidate_details input[type='submit']").on("click", function(e) {
 // =================================================================
 // function to show the file input
 
+// ----------------------------------------------------------
+// to load resume input initially
 function resume_input_initial() {
 	
 	$("#resume").fileinput({
 		maxFileSize: 1024, // 1 MB
         showUpload: false, 
         showUploadedThumbs: false,
-        showInitialPreview: true,
-        overwriteInitial : true,
-        showInitialPreview: false,
         allowedFileTypes: ["pdf", "object"],
         allowedFileExtensions: ["docx", "doc", "pdf"]
 	}).fileinput('clear');
 }
 
+// --------------------------------------------------------
+// to load video input initially
 function video_input_initial() {
 	
 	$("#interview_video").fileinput({
 		maxFileSize: 51200, // 50 MB
         showUpload: false,
-        showUploadedThumbs: false, 
-        showPreview: false,
-        showInitialPreview: false,
-        overwriteInitial : true,
-        allowedFileTypes: ["video"],
-        allowedFileExtensions: ["mpeg4", "mp4"]
+        showUploadedThumbs: false,
+        allowedFileTypes: ["video", "object"],
+        allowedFileExtensions: ["mpeg4", "mp4", "mp3", "wav", "ogg"]
 	}).fileinput('clear'); 
+}
+
+// ---------------------------------------------------------
+// to load resume input with file
+function resume_input_withfile(file_url) {
+	
+	$('#resume').fileinput('refresh', {
+		maxFileSize: 1024,
+		showUpload: false, 
+		showRemove: false,
+		showClose: false,
+		showUploadedThumbs: false,
+		initialPreviewShowDelete: false,
+    	overwriteInitial : true,
+		initialPreviewAsData: true, 
+        initialPreviewFileType: 'pdf', 
+        initialPreview: [
+            file_url,
+        ],
+        initialPreviewConfig: [
+            {caption:"Resume", showZoom: true}
+        ],
+        allowedFileExtensions: ["docx", "doc", "pdf"]
+	});
+}
+
+// ---------------------------------------------------------
+// to load video input with file
+function video_input_withfile(file_url) {
+	
+	$("#interview_video").fileinput('refresh',{
+		maxFileSize: 51200,
+		showUpload: false, 
+		showRemove: false,
+		showClose: false,
+		showUploadedThumbs: false,
+		initialPreviewShowDelete: false,
+    	overwriteInitial : true,
+    	initialPreviewAsData: true,
+    	initialPreviewFileType: 'video',
+		initialPreview: [
+            file_url,
+        ],
+        initialPreviewConfig: [
+            {caption:"Interview", showZoom: true, filetype: "video/mp4"}
+        ],
+        allowedFileTypes: ["video", "audio"],
+        allowedFileExtensions: ["mpeg4", "mp4", "mp3", "wav", "ogg"]
+	});
 }
 // =================================================================
 // fill the filters with default value on page load

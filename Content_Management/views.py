@@ -296,15 +296,15 @@ class CandidateProfile(LoginRequiredMixin, View):
 
             candidate_id = request.POST["email"]
             if not request.user.is_superuser:
-                response["errors"] = "You are not authorized to do this operation"
+                response["errors"].append("You are not authorized to do this operation")
                 return HttpResponse(json.dumps(response), content_type="application/json")
             else:
                 try:
                     candidate = Candidate.objects.get(candidate_email=candidate_id).delete()
-                    response["message"] = {"success":"Successfully Deleted"}
+                    response["message"] = {"success" : "Successfully Deleted"}
                     response["method"] = "Delete"
                 except:
-                    response["errors"] = "Unable to delete this candidate"
+                    response["errors"].append("Unable to delete this candidate")
 
                 return HttpResponse(json.dumps(response), content_type="application/json")
 
