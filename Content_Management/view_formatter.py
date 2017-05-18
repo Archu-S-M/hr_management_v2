@@ -31,7 +31,7 @@ class ExtendCandidateProfile:
     post_dt_format1 = "%d/%m/%Y %I:%M %p"
     post_dt_format2 = "%d/%m/%Y %I:%M %P"
 
-    video_extensions = ["mp4", "mpeg4"]
+    video_extensions = ["mp4", "mpeg4", "mp3", "wav", "ogg"]
     resume_extensions = ["pdf", "doc", "docx"]
 
     def __init__(self):
@@ -79,7 +79,8 @@ class ExtendCandidateProfile:
         expected_ctc = data["expected_ctc"]
         preferred_location = data["location"]
         notice_period = data["notice_period"]
-        if  request.user.is_superuser:
+
+        if request.user.is_superuser:
             status = data["status"]
 
         # initialize file values empty
@@ -195,6 +196,7 @@ class ExtendCandidateProfile:
 
                     if request.user.is_superuser:
                         candidate.candidate_status = status
+
                     candidate.position = position
                     candidate.candidate_name = name
                     candidate.candidate_email = email
@@ -233,8 +235,14 @@ class ExtendCandidateProfile:
                     activities.save()
 
                 except:
+                    if request.user.is_superuser:
+                        candidate = Candidate.objects.get(candidate_email=email)
+                        candidate.candidate_status = status
+                        candidate.save()
+
                     response["message"]["error"] = ("You are not authorized to update the candidate <br>"
-                                                    "Belongs to some other User")
+                                                    "Belongs to some other User<br>"
+                                                    "Only the candidate status can be changed")
 
 
 
@@ -428,6 +436,7 @@ class ExtendCandidateProfile:
             current_ctc = can.candidate.current_ctc
             expected_ctc = can.candidate.expected_ctc
             notice = can.candidate.notice_period
+            candidate_status = can.candidate.candidate_status
 
             if id not in candidate_temp_array:
                 candidate_temp_array[id] = {"name": "",
@@ -442,6 +451,7 @@ class ExtendCandidateProfile:
             candidate_temp_array[id]["current_ctc"] = current_ctc
             candidate_temp_array[id]["expected_ctc"] = expected_ctc
             candidate_temp_array[id]["notice"] = notice
+            candidate_temp_array[id]["status"] = candidate_status
 
 
         # arrange the data in response format
@@ -454,7 +464,8 @@ class ExtendCandidateProfile:
                     "current_ctc": candidate_temp_array[id]["current_ctc"],
                     "expected_ctc": candidate_temp_array[id]["expected_ctc"],
                     "notice": candidate_temp_array[id]["notice"],
-                    "consultancy": candidate_temp_array[id]["consultancy"]
+                    "consultancy": candidate_temp_array[id]["consultancy"],
+                    "status": candidate_temp_array[id]["status"]
                     }
 
             response["candidate_details"].append(temp)
@@ -525,7 +536,8 @@ class ExtendCandidateProfile:
                                                       "value": consultancy_pk})
 
                 else:
-                    consultancy = CustomUser.objects.get(user=request.user)
+                    user_id = request.user.id
+                    consultancy = CustomUser.objects.get(pk=user_id)
                     consultancy_name = consultancy.consultancy_name
                     consultancy_pk = consultancy.pk
 
@@ -538,6 +550,7 @@ class ExtendCandidateProfile:
                 if request.user.is_superuser:
                     skills = Skillset.objects.all()
                 else:
+
                     skills = Skillset.objects.filter(
                         candidate__consultancy=request.user)
 
