@@ -85,9 +85,9 @@ WSGI_APPLICATION = 'hr_management_v2.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'hr_management',
+        'NAME': 'hrm',
         'USER': 'postgres',
-        'PASSWORD': 'root',
+        'PASSWORD': 'abcd1234',
         'HOST': 'localhost',
         'PORT': '5432',
     }
