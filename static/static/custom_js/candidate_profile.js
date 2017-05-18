@@ -57,7 +57,7 @@ if(availablePositions.length === 0) {
 // #####################################################################################
 /* *************************************
  * Filters and its managing functions
-* *************************************/
+ * *************************************/
 
 
 // function to reset the form to create new employee
@@ -190,7 +190,7 @@ var $consultancy_filter = $('#consultancy_filter').selectize({
     
 });
 
-
+// add a new functionality
 // add to object array
 filter_object_array["consultancy"] = $consultancy_filter;
 
@@ -381,6 +381,13 @@ function candidate_short_details () {
         order: [],
         colReorder: true,
         // dom: 'Bfrtip',
+        /*{label: "New", value: "New"},
+	{label: "Hold", value: "Hold"},
+	{label: "Tellephonic", value: "Tellephonic"},
+	{label: "Face to Face", value: "Face to Face"},
+	{label: "Shortlisted", value: "Shortlisted"},
+	{label: "Selected", value: "Selected"},
+	{label: "Rejeceted", value: "Rejeceted"},*/
         columns:[
         	{
         		data: "candidate.name",
@@ -395,6 +402,24 @@ function candidate_short_details () {
         	{data: "current_ctc"},
         	{data: "expected_ctc"},
         	{data: "notice"},
+        	{
+        		data: "status",
+        		render: function(data, type, raw_data, meta) {
+        			var label = "";
+        			switch(data) {
+        				case "New": label = "label-default";break;
+        				case "Hold": label = "label-info";break;
+        				case "Tellephonic": label = "label-warning";break;
+        				case "Face to Face": label = "label-warning";break;
+        				case "Shortlisted": label = "label-primary";break;
+        				case "Selected": label = "label-success";break;
+        				case "Rejeceted": label = "label-danger";break;
+        			}
+
+        			return '<div class="label '+label+'">'+data+'</div>';
+
+        		}
+        	}
         ]
 		
 
