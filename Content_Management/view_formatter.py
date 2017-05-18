@@ -195,7 +195,6 @@ class ExtendCandidateProfile:
 
                     if request.user.is_superuser:
                         candidate.candidate_status = status
-                        # print(status)
                     candidate.position = position
                     candidate.candidate_name = name
                     candidate.candidate_email = email

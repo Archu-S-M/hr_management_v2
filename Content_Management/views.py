@@ -148,7 +148,7 @@ class ManageConsultancy(LoginRequiredMixin, View):
         response = {
         }
 
-        print(request.POST)
+        # print(request.POST)
 
         method = request.POST["submit"]
 
@@ -231,8 +231,8 @@ class CandidateProfile(LoginRequiredMixin, View):
     post_dt_format1 = "%d/%m/%Y %I:%M %p"
     post_dt_format2 = "%d/%m/%Y %I:%M %P"
 
-    video_extensions = ["mp4","mpeg4"]
-    resume_extensions = ["pdf","doc","docx"]
+    video_extensions = ["mp4", "mpeg4"]
+    resume_extensions = ["pdf", "doc", "docx"]
 
     template = "Content_Management/candidate_profile.html"
     context = locals()
@@ -301,7 +301,7 @@ class CandidateProfile(LoginRequiredMixin, View):
             else:
                 try:
                     candidate = Candidate.objects.get(candidate_email=candidate_id).delete()
-                    response["message"] = {"success","Successfully Deleted"}
+                    response["message"] = {"success":"Successfully Deleted"}
                     response["method"] = "Delete"
                 except:
                     response["errors"] = "Unable to delete this candidate"

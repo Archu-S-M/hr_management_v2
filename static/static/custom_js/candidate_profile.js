@@ -57,7 +57,7 @@ if(availablePositions.length === 0) {
 // #####################################################################################
 /* *************************************
  * Filters and its managing functions
-* *************************************/
+ * *************************************/
 
 
 // function to reset the form to create new employee
@@ -190,7 +190,7 @@ var $consultancy_filter = $('#consultancy_filter').selectize({
     
 });
 
-
+// add a new functionality
 // add to object array
 filter_object_array["consultancy"] = $consultancy_filter;
 
