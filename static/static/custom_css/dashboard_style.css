@@ -1,0 +1,22 @@
+.panel-black {
+	border: #333 1px solid;
+	border-radius: 5px;
+}
+.panel-black .panel-heading {
+	background-color: #333;
+	color: #eee;
+}
+
+.panel-black .panel-footer {
+	background-color: #333;
+	color: #eee;
+}
+.panel-black .panel-body {
+	background-color: #eeee;
+	color: #eee;
+}
+
+.panel-black > .pagination > .active > a, .pagination > .active > a:focus, .pagination > .active > a:hover, .pagination > .active > span, .pagination > .active > span:focus, .pagination > .active > span:hover {
+	background-color: #333;
+	color: #eee; 
+}
