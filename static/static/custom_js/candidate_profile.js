@@ -6,6 +6,8 @@
 var CANDIDATE_NEW = true;
 var CANDIDATE_SELECTED = false;
 var SUBMIT_VALUE = "";
+// for setting and resetting the confirmation of delete
+var DELETE = false;
 
 // candidate short details table object
 // it will reset to table object on first load
@@ -304,7 +306,7 @@ function fill_filters(filter_name) {
         		for(var i=0;i<data[filter_name].length; i++) {
         			availableSkillset.push(data[filter_name][i]["label"]);
         		}
-        		initiateSkillDropdown(false);
+        		initiateSkillDropdown();
 
         	}
         	else if(filter_name === "position") {
@@ -464,13 +466,13 @@ function update_short_details(data, $table) {
  * data to show initially
  */
 
-function initiateSkillDropdown(id) {
+function initiateSkillDropdown() {
 
 
 	$( ".skill_input" ).autocomplete({
 		minLength: 0,
     	source: availableSkillset
-    	
+
     }).focus(function(){            
     	$(this).autocomplete("search");
     });
@@ -552,7 +554,7 @@ function append_skill_row(skills="") {
 	$("#skill_table").append( tr );
 
 	// adding dropdown properties to the input after creating the input
-	initiateSkillDropdown(identifiers.input_id);
+	initiateSkillDropdown();
 
 	return true
 }
@@ -651,7 +653,7 @@ function show_full_details(data) {
 	// $("#resume").val(resume_url);
 	
 	$("#skill_input0").val(skills[0]);
-	initiateSkillDropdown("skill_input0");
+	initiateSkillDropdown();
 	if(skills.length > 1) {
 		for(var i=1; i<skills.length; i++) {
 			append_skill_row(skills[i]);
@@ -704,70 +706,78 @@ $("#remove_form").on('click', function() {
 
 // ========================================================================
 
-// function call to create a row initially
-// only for test
-// append_skill_row();
-
+/**
+ * This is the main post response
+ * what are the notifications and actions to trigger after form submission
+ * (Form Candidate Details)
+ * @param  {[JSON]} data [from server]
+ * @return {[null]} 
+ */
 function post_response(data) {
 
 
-	// alert(data["video_url"]);
-	// reload with new posted video, resume and set download link
-	// alert(JSON.stringify(data));
+	// -------------------------------------------------------------------
+	// re;oad the interview video or audio for valid paths
 	if((data["video_url"] != "/media/#") && (data["video_url"] != "#")){
-		// var video = document.getElementById('interview_video_play');
-		// var sources = video.getElementsByTagName('source');
-	 //    sources[0].src = data["video_url"];
-	 //    video.load();
+		
 		   video_input_withfile(data["video_url"]);
-
 		$("#interview_video_download").attr("href", data["video_url"]);
 	}
 
+	// ----------------------------------------------------------------------
+	// Reload the candidate resume for valid path 
 	if((data["resume_url"] != "/media/#") && (data["resume_url"] != "#")){
 
 		resume_input_withfile(data["resume_url"]);
 		$("#resume_download").attr("href", data["resume_url"]);
 	}
 
+	// ------------------------------------------------
+	// get the response values
 	var errors = data.errors,
 		info   = data.info,	
 		message = data.message,
 		method = data.method;
 
-	// alert(data['message']);
+	// ------------------------------------------------
+	// If the method is delete
 	if(method === "Delete") {
-		showNotifications("Successfully Deleted", "success");
 		$("#candidate_details").fadeOut();
 		$("#candidate_short_details_panel").fadeIn();
 		$("#collapse_can_details").collapse("show");
 	}
 
+	// ------------------------------------------------
+	// If there are errors
 	if(errors.length) {
-
 		$.each(errors, function(key, value) {
 			showNotifications(value, "danger");
 		});
 	}
 
+	// ------------------------------------------------
+	// If there are informations
 	if(info.length) {
-		CANDIDATE_NEW = false;
+		// CANDIDATE_NEW = false;
 		// after response from server about the new candidite reload the filters
 		reload_filters();
 		$.each(info, function(key, value) {
 			showNotifications(value, "info");
-
 		});
 	}
 
+	// ---------------------------------------------------------------------------
+	// If there are messages successfull or errors on form input to database
 	if(!($.isEmptyObject(message))) {
-		CANDIDATE_NEW = false;
-		// alert(JSON.stringify(message));
-		// after response from server about the new candidite reload the filters
 		
+		
+		// after response from server about the new candidite reload the filters
 		$.each(message, function(key, value) {
-			// alert(JSON.stringify(key));
+			
+			// -------------------------------------
+			// If success
 			if(key === "success") {
+				CANDIDATE_NEW = false;
 				var msg = "<strong>Success!</strong>"+value;
 				showNotifications(msg, "success");
 				reload_filters();
@@ -775,6 +785,8 @@ function post_response(data) {
 				
 				
 			}
+			// ------------------------------------
+			// If errors
 			else if(key === "error") {
 				var msg = "<strong>Error!</strong>"+value;
 				showNotifications(msg, "danger");
@@ -830,7 +842,14 @@ $('#interview_time').datetimepicker({
 // function to find which submit button is clicked?!!!
 $("#candidate_details input[type='submit']").on("click", function(e) {
 	SUBMIT_VALUE = $(this).val();
+
 });
+
+// =================================================================
+// candidate delete confirmation
+
+
+
 
 
 // =================================================================

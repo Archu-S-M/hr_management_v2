@@ -12,23 +12,44 @@ var $ACTIVITY_TABLE = null;
 // function to create activity table
 
 function create_activity_table() {
+
 	$ACTIVITY_TABLE = $('#activity_table').dataTable({
         responsive: true,
         order: [],
         colReorder: true,
-        // dom: 'Bfrtip',
         columns:[
         	
         	{
                 data: "activities.activity"
             },
-        	{data: "date"},
+        	{
+                data: "date",
+                width: "120px"
+            },
         	
         ],
 
         createdRow: function (row, data, index) {
 
-            console.log(JSON.stringify(data));
+            consultancy_id = data.activities.consultancy_id;
+            candidate_id = data.activities.candidate_id;
+            question_id = data.activities.question_id;
+            requirements_id = data.activities.requirements_id;
+
+            if(consultancy_id) {
+                $(row).addClass("danger");
+            }
+            else if(candidate_id) {
+                $(row).addClass("info");
+            }
+            else if(question_id) {
+                $(row).addClass("warning");
+            }
+            else if(requirements_id) {
+                $(row).addClass("success");
+            }
+
+
         }
 		
 
@@ -39,7 +60,7 @@ function create_activity_table() {
 // Update with the data
 
 function update_details(data, $table) {
-    // alert(JSON.stringify(data));
+    
     $table.api().clear().draw();
     $table.api().rows.add(data);
     $table.api().columns.adjust().draw();

@@ -133,7 +133,9 @@ function change_pos_status(that, id) {
 function delete_position(that, id) {
 
     var message  = "<div class='alert alert-danger'>";
-        message += "This operation will delete the values. Do you want to continue?!";
+        message += "<strong>CAUSION !!</strong> <br>";
+        message += "This operation will delete the position and related values <br>";
+        message += "Such as Candidate, Questionnaire and Skills. Do You Want to Continue?!!";
         message += "</div>";
 
     POSITION_OPERATION.id = id;
@@ -340,19 +342,24 @@ function get_skills() {
 $("#form-position").on("submit", function(e) {
 
     e.preventDefault();
-    var formData = $(this).serializeArray();
-    formData.push({name:"post_for",value:"add_position"});
+    var formData = new FormData($(this)[0]);
+    formData.append("post_for","add_position");
 
     $.ajax({
         url: BASE_URLS.Requirements,
         type: 'POST',
         data: formData,
+        async: false,
         success: function (data) {
             
-            $("#form-position").reset();
+            $("#form-position")[0].reset();
+            showNotifications(data.message, data.msg_type);
             get_position_filter();
             get_positions();
-        }
+        },
+        cache: false,
+        contentType: false,
+        processData: false
     });
 
 });
@@ -372,7 +379,8 @@ $("#form-skill").on("submit", function(e) {
         data: formData,
         success: function (data) {
             // alert(JSON.stringify(data));
-            $("#form-skill").reset();
+            showNotifications(data.message, data.msg_type);
+            $("#form-skill")[0].reset();
             get_skills();
         },
         
@@ -394,7 +402,8 @@ $("#edit_position_row").on("submit", function(e) {
         type: 'POST',
         data: formData,
         success: function (data) {
-            $("#position_modal").modal("hide");
+            $("#position_modal").modal("toggle");
+            showNotifications(data.message, data.msg_type);
             get_position_filter();
             get_positions();
         },
@@ -418,7 +427,8 @@ $("#edit_skill_row").on("submit", function(e) {
         type: 'POST',
         data: formData,
         success: function (data) {
-            $("#skill_modal").modal("hide");
+            $("#skill_modal").modal("toggle");
+            showNotifications(data.message, data.msg_type);
             get_skills();
 
         },
@@ -438,7 +448,7 @@ $("#confirm_position").on("click", function() {
         type: 'POST',
         data: {position_id: POSITION_OPERATION.id, post_for:"delete_position"},
         success: function (data) {
-            // alert(data);
+            showNotifications(data.message, data.msg_type);
             get_position_filter();
             get_positions();
             get_skills();
@@ -446,7 +456,7 @@ $("#confirm_position").on("click", function() {
         
     });
 });
-
+// ------------------------------------------------------------------
 // for confirming skill delete
 $("#confirm_skill").on("click", function() {
     $.ajax({
@@ -454,7 +464,7 @@ $("#confirm_skill").on("click", function() {
         type: 'POST',
         data: {skill_id: SKILL_OPERATION.id, post_for:"delete_skill"},
         success: function (data) {
-            // alert(data);
+            showNotifications(data.message, data.msg_type);
             get_skills();
         },
         
@@ -462,12 +472,49 @@ $("#confirm_skill").on("click", function() {
 });
 
 
+// =======================================================================
+// To show the job description
+// =========================================================
+// for the file input 
+
+function jd_input_initial() {
+    
+    $("#jd_file").fileinput({
+        maxFileSize: 1024, // 1 MB
+        showUpload: false,
+        showPreview: false,
+        overwriteInitial : true,
+        allowedFileTypes: ["pdf"],
+        allowedFileExtensions: ["pdf"]
+
+    }).fileinput('clear');
+}
+
+
+// =======================================================================
+// function to show nootifications
+
+function  showNotifications(msg, type) {
+    $.notify({
+    // options
+    message: msg
+    },{
+        // settings
+        type: type,
+        delay: 1500,
+        placement:{from: "top",
+                    align: "left"}
+        
+    });
+}
+
 // #####################################################################
 // initilalizations
 
 
 // Initial call to the function
 create_position_table();
+// jd_input_initial();
 create_skill_table();
 get_positions();
 get_position_filter();

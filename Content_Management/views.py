@@ -13,6 +13,7 @@ from django.db.models import Q
 
 # Pyhon special libraries
 import json, os
+from PyPDF2 import PdfFileReader, PdfFileWriter
 from datetime import datetime
 from functools import reduce
 
@@ -209,7 +210,7 @@ class ManageConsultancy(LoginRequiredMixin, View):
 
                     activities = Activities(consultancy=consultancy,
                                             activity=activity,
-                                            )
+                                           )
 
                     activities.save()
                     response["status"] = "success"
@@ -295,6 +296,7 @@ class CandidateProfile(LoginRequiredMixin, View):
         elif post_method == "Delete":
 
             candidate_id = request.POST["email"]
+            # only super user can delete a candidate
             if not request.user.is_superuser:
                 response["errors"].append("You are not authorized to do this operation")
                 return HttpResponse(json.dumps(response), content_type="application/json")
@@ -368,7 +370,7 @@ class Questionnaire(LoginRequiredMixin, View):
         # valid extensions
         ext = ["pdf"]
 
-        print(request.POST)
+        # print(request.POST)
 
         method = request.POST["post_for"]
 
@@ -455,7 +457,7 @@ class Questionnaire(LoginRequiredMixin, View):
 
                             # to add question
                             elif int(question_id) == 0 and int(position_id) != 0:
-                                if Questions.objects.filter(position_id=int(position_id)).exists():
+                                if not Questions.objects.filter(position_id=int(position_id)).exists():
                                     question = Questions(question=new_question_name,
                                                          position_id=int(position_id))
                                     question.save()
@@ -528,11 +530,12 @@ class Requirements(LoginRequiredMixin, View):
 
         response = {
             "data": [],
-            "message": False
+            "message": False,
+            "msg_type": ""
 
         }
 
-        print(request.POST)
+        # print(request.POST)
         method = request.POST["post_for"]
 
 
@@ -606,6 +609,7 @@ class Requirements(LoginRequiredMixin, View):
 
             if exists:
                 response["message"] = "Skill already available for this position; Please check the table"
+                response["msg_type"] = "warning"
 
             else:
                 if int(position) != 0:
@@ -615,8 +619,10 @@ class Requirements(LoginRequiredMixin, View):
                                          )
                     skill.save()
                     response["message"] = "Successfully Added new skill for the position"
+                    response["msg_type"] = "success"
                 else:
                     response["message"] = "No Positions to add Skills add a position first"
+                    response["msg_type"] = "warning"
 
 
 
@@ -645,6 +651,7 @@ class Requirements(LoginRequiredMixin, View):
                 activity.save()
 
                 response["message"] = "Successfully added new position"
+                response["msg_type"] = "success"
 
             return HttpResponse(json.dumps(response), content_type="application/json")
 
@@ -666,6 +673,7 @@ class Requirements(LoginRequiredMixin, View):
             skill.save()
 
             response["message"] = "Successfully Updated"
+            response["msg_type"] = "success"
 
             return HttpResponse(json.dumps(response), content_type="application/json")
 
@@ -688,6 +696,7 @@ class Requirements(LoginRequiredMixin, View):
             position.save()
 
             response["message"] = "Successfully Updated"
+            response["msg_type"] = "success"
 
             activity = Activities(position=position,
                                   activity="Position Updated"
@@ -704,8 +713,10 @@ class Requirements(LoginRequiredMixin, View):
             try:
                 MasterSkills.objects.filter(pk=int(skill_id)).delete()
                 response["message"] = "Successfully deleted skill"
+                response["msg_type"] = "success"
             except:
                 response["message"] = "Skill does not exists"
+                response["msg_type"] = "danger"
 
             return HttpResponse(json.dumps(response), content_type="application/json")
 
@@ -718,11 +729,15 @@ class Requirements(LoginRequiredMixin, View):
             try:
                 Positions.objects.filter(pk=int(position_id)).delete()
                 response["message"] = "Successfully deleted position"
+                response["msg_type"] = "success"
             except:
                 response["message"] = "position does not exists"
+                response["msg_type"] = "danger"
 
             return HttpResponse(json.dumps(response), content_type="application/json")
 
 
 
-        return HttpResponse(json.dumps({}), content_type="application/json")
+        return HttpResponse(json.dumps({"message" : "Invalid Post Request",
+                                        "msg_type" : "danger"}),
+                            content_type="application/json")

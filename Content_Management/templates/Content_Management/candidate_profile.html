@@ -330,7 +330,9 @@
                         <!--/.col-lg-4-->
                         <div class="col-lg-6">
                             <div class="form-group">
-                                <input id="delete" class="form-control btn btn-danger" type="submit" name="submit" value="Delete">
+                                <button id="delete" class="form-control btn btn-danger" data-toggle="modal" data-target="#delete_msg" disable>
+                                    Delete
+                                </button>
                             </div>
                         </div>
                         <!--/.col-lg-4-->
@@ -363,12 +365,12 @@
           </div>
           <div class="modal-body">
             <div class="alert alert-danger">
-                This operation will update the database Do You want to continue?
+                This operation will delete the candidate Do You want to continue?
             </div>
           </div>
           <div class="modal-footer" align="center">
-            <a class="btn btn-primary" id="confirm_delete" data-dismiss="modal">Yes</a>
-            <a class="btn btn-default" data-dismiss="modal">Close</a>
+            <a class="btn btn-danger" id="confirm-delete" data-dismiss="modal">Yes</a>
+            <a class="btn btn-default" data-dismiss="modal">Cancel</a>
           </div>
         </div>
 
@@ -385,6 +387,8 @@
 
     
     
+    
+
     <script src='{% static "bootstrap-fileinput/js/plugins/sortable.min.js" %}'></script>
     <script src='{% static "bootstrap-fileinput/js/fileinput.min.js" %}'></script>
 
@@ -429,11 +433,17 @@
     <script type="text/javascript" src="{% static 'bootstrap_notify/bootstrap-notify.min.js' %}"></script>
 
     <script type="text/javascript" src="{% static 'custom_js/csrf-header.js' %}"></script>
-    <script type="text/javascript" src="{% static 'custom_js/candidate_profile.js' %}">
+    <script type="text/javascript" src="{% static 'custom_js/candidate_profile.js' %}"></script>
 
-
+    {# prevent users from hitting enter #}
+    <script type="text/javascript">
+        $(window).keydown(function(event){
+            if(event.keyCode == 13) {
+              event.preventDefault();
+              return false;
+            }
+        });
     </script>
-
 
     <!-- Replace the value of the key parameter with your own API key. -->
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD83pNkdekMHYom8XHDmzuqqTNekDfXY4Q&libraries=places&callback=initGoogleAutocomplete"
@@ -449,6 +459,8 @@
 
         $('#candidate_details').on("submit",function(e){
             e.preventDefault();
+
+            
             var formData = new FormData($(this)[0]);
             formData.append('save_type', CANDIDATE_NEW);
             formData.append('submit', SUBMIT_VALUE);
@@ -472,7 +484,18 @@
         // only for super user
         // =================================================
         
-        
+        $("#confirm-delete").on("click", function(e){
+            // ("#delete_msg").modal("toggle");
+            var can_email = $("#email").val();
+            $.ajax({
+                url : "{% url 'CandidateProfile' %}",
+                type: "POST",
+                data: {submit : "Delete", email : can_email},
+                success: function(data) {
+                    post_response(data);
+                }
+            });
+        });
 
 
         // {% endif %}

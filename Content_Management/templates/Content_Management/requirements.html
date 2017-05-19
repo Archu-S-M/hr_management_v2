@@ -18,6 +18,12 @@
     <!-- Selectize -->
     <link rel="stylesheet" type="text/css" media="all" href='{% static "selectize/dist/css/selectize.bootstrap3.css" %}'>
 
+    {# bootstrap file input #}
+    <link href='{% static "bootstrap-fileinput/css/fileinput.min.css" %}' media="all" rel="stylesheet" type="text/css" />
+
+    {# boosstrap animate #}
+    <link rel="stylesheet" type="text/css" href="{% static 'bootstrap_notify/animate.css' %}">
+
 	<link rel="stylesheet" type="text/css" href='{% static "custom_css/requirements_styles.css" %}'>
 {% endblock "custom_styles" %}
 
@@ -58,7 +64,7 @@
 					            <thead>
 					                <tr>
 					                    <th>Position</th>
-					                    <th>Description</th>
+					                    <th>Job Description</th>
 					                    <th>State</th>
 					                    <th>Date</th>
 					                    {% if request.user.is_superuser %}
@@ -77,7 +83,8 @@
 
 						{% if request.user.is_superuser%}
 							<div class="panel-footer" style="background: #FFFFDF">
-								<form class="form" action="" method="POST" id="form-position">
+								<form class="form" action="" method="POST" id="form-position" 
+								enctype="multipart/form-data">
 									{% csrf_token %}
 
 
@@ -88,7 +95,7 @@
 												<input class="form-control" type="text" name="position_name" id="position_name" placeholder="Position" required>
 											</div>
 											<div class="col-lg-7">
-												<input class="form-control" type="text" name="description" id="description" placeholder="Description" required>
+												<input class="form-control" type="text" name="description" id="jd_file" placeholder="Job Description" required>
 											</div>
 										
 											<div class="col-lg-1">
@@ -196,7 +203,7 @@
 	        	<br>
 	        	<div class="form-group">
 	        		<input class="form-control" type="text" name="description" 
-	        		placeholder="Description" required>
+	        		placeholder="Job Description" required>
 	        	</div>
 	        	<br>
 	        	<div class="form-group">
@@ -305,7 +312,10 @@
 {% endblock %}
 
 {% block "custom_scripts" %}
-
+	
+	{# file input #}
+	<script src='{% static "bootstrap-fileinput/js/plugins/sortable.min.js" %}'></script>
+    <script src='{% static "bootstrap-fileinput/js/fileinput.min.js" %}'></script>
 
 	<!-- DataTables JavaScript -->
     <script src='{% static "vendor/datatables/js/jquery.dataTables.min.js" %}'></script>
@@ -322,6 +332,9 @@
     <script type="text/javascript" src='{% static "selectize/src/plugins/remove_button/plugin.js" %}'>
     </script>
     <script type="text/javascript" src='{% static "selectize/src/plugins/drag_drop/plugin.js" %}'></script>
+
+    {# bootstrap notify #}
+    <script type="text/javascript" src="{% static 'bootstrap_notify/bootstrap-notify.min.js' %}"></script>
 
 	<!-- Script for the page -->
     <script type="text/javascript" src="{% static 'custom_js/csrf-header.js' %}"></script>

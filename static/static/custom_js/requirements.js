@@ -213,7 +213,24 @@ function get_skills() {
 }
 
 
+// =======================================================================
+// function to show nootifications
 
+function  showNotifications(msg, type) {
+    $.notify({
+    // options
+    message: msg
+    },{
+        // settings
+        type: type,
+        delay: 1500,
+        placement:{from: "top",
+                    align: "left"}
+        
+    });
+}
+
+// --------------------------------------------------------------------
 // Initial call to the function
 create_position_table();
 create_skill_table();

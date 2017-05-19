@@ -15,6 +15,8 @@
     <!-- DataTables Responsive CSS -->
     <link href='{% static "vendor/datatables-responsive/dataTables.responsive.css" %}' rel="stylesheet">
 
+    <link href='{% static "custom_css/dashboard_style.css" %}' rel="stylesheet">
+
 {% endblock %}
 
 
@@ -31,19 +33,45 @@
     <!-- /.row -->
 
     <div class="row">
-    	<table width="100%" class="table table-hover" id="activity_table">
+        <div class="col-lg-7">
+            <div class="panel panel-black">
+                <div class="panel-heading">Activities</div>
+            	<table class="table table-hover table-responsive" id="activity_table">
 
-            <thead>
-                <tr>
-                    <th>Activities</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <!--<tbody>
-            	
-            </tbody>-->
-        </table>
+                    <thead>
+                        <tr>
+                            <th>Activities</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <!--<tbody>
+                    	
+                    </tbody>-->
+                </table>
+            </div>
+        </div>
+        <div class="col-lg-5">
+            <div class="panel panel-primary">
+                <div class="panel-heading">Upcoming Activities</div>
+                <table class="table table-hover table-responsive" id="upcoming_activity_table">
+
+                    <thead>
+                        <tr>
+                            <th>Activities</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <th>Interview scheduled today</th>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
+
+    
 {% endblock %}
 
 

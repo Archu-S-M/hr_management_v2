@@ -159,6 +159,9 @@ function  showNotifications(msg, type) {
 	},{
 		// settings
 		type: type,
+		delay: 1500,
+		placement:{from: "top",
+					align: "left"}
 		
 	});
 }
